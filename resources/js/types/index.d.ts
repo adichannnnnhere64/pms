@@ -41,3 +41,18 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+// resources/js/types/global.d.ts
+import type * as JQuery from 'jquery';
+
+declare global {
+  interface Window {
+    $: typeof JQuery;
+    jQuery: typeof JQuery;
+    Popper: any;
+    PerfectScrollbar: any;
+  }
+}
+
+export {};
+
