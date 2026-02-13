@@ -119,6 +119,23 @@ class MenuSeeder extends Seeder
             'parent_id' => $utilities->id,
         ]);
 
+        $utilities = Menu::create([
+            'title' => 'Workflows',
+            'icon' => 'CreditCard',
+            'route' => '#',
+            'order' => 4,
+            'permission_name' => 'workflows.view',
+        ]);
+
+        Menu::create([
+            'title' => 'APV',
+            'icon' => 'Folder',
+            'route' => '/workflow',
+            'order' => 4,
+            'permission_name' => 'apv.view',
+            'parent_id' => $utilities->id,
+        ]);
+
         $permissions = Menu::pluck('permission_name')->unique()->filter();
 
         foreach ($permissions as $permName) {

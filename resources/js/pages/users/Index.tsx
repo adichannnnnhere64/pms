@@ -17,10 +17,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import 'dayjs/locale/id';
+// import 'dayjs/locale/ph';
 
 dayjs.extend(relativeTime);
-dayjs.locale('id');
+// dayjs.locale('ph');
 
 const breadcrumbs: BreadcrumbItem[] = [
   {

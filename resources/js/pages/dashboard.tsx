@@ -52,54 +52,8 @@ const COLORS = ['#0ea5e9', '#14b8a6', '#f97316', '#9333ea'];
 export default function Dashboard({chartData} : any) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Dashboard" />
-      <div className="flex flex-col gap-6 p-4">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {summaryData.map((item, index) => (
-            <Card key={index} className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-              <CardHeader className="px-4 py-3">
-                <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">{item.label}</CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 py-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{item.value}</CardContent>
-            </Card>
-          ))}
-        </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Bar Chart */}
-          <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-            <CardHeader className="px-4 py-3">
-              <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">Monthly Activity</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChartComponent data={chartData} />
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Line Chart */}
-          <Card className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-            <CardHeader className="px-4 py-3">
-              <CardTitle className="text-lg font-semibold text-gray-800 dark:text-white">Monthly Trends</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="name" stroke="#6b7280" />
-                  <YAxis stroke="#6b7280" />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="Users" stroke="#22c55e" strokeWidth={2} />
-                  <Line type="monotone" dataKey="Backups" stroke="#f43f5e" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            adi
     </AppLayout>
   );
 }

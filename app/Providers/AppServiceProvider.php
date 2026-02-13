@@ -3,12 +3,13 @@
 namespace App\Providers;
 
 use App\Models\Menu;
-use App\Models\User;
 use App\Models\SettingApp;
-use Spatie\Permission\Models\Role;
+use App\Models\User;
 use App\Observers\GlobalActivityLogger;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,5 +31,21 @@ class AppServiceProvider extends ServiceProvider
         Permission::observe(GlobalActivityLogger::class);
         Menu::observe(GlobalActivityLogger::class);
         SettingApp::observe(GlobalActivityLogger::class);
+
+        // -- Step 1: Encoder creates and submits the APV form -------------------------
+        Gate::define('workflow.apv.can_submit', function ($user): bool {
+            return $user->hasRole('encoder');
+        });
+
+        // -- Step 2: Manager validates the request ------------------------------------
+        Gate::define('workflow.apv.can_approve', function ($user): bool {
+            return $user->hasRole('manager');
+        });
+
+        // -- Step 3: Director OR Finance releases the payment -------------------------
+        Gate::define('workflow.apv.can_release', function ($user): bool {
+            return $user->hasAnyRole(['director', 'finance']);
+        });
+
     }
 }

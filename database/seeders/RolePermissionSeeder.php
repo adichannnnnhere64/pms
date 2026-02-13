@@ -14,6 +14,8 @@ class RolePermissionSeeder extends Seeder
         $admin = Role::firstOrCreate(['name' => 'admin']);
         $user = Role::firstOrCreate(['name' => 'user']);
 
+        $encoder = Role::firstOrCreate(['name' => 'encoder', 'guard_name' => 'web']);
+
         // Daftar permission berdasarkan menu structure
         $permissions = [
             'Dashboard' => [
@@ -36,6 +38,10 @@ class RolePermissionSeeder extends Seeder
                 'log-view',
                 'filemanager-view',
             ],
+            'Workflows' => [
+                'workflows.view',
+                'apv.view',
+            ]
         ];
 
         foreach ($permissions as $group => $perms) {
@@ -45,11 +51,17 @@ class RolePermissionSeeder extends Seeder
                     'group' => $group,
                 ]);
 
+                if ($name == 'dashboard-view') {
+                    $encoder->givePermissionTo($permission);
+                }
+
+
                 // Assign ke admin
                 if (!$admin->hasPermissionTo($permission)) {
                     $admin->givePermissionTo($permission);
                 }
             }
         }
+
     }
 }

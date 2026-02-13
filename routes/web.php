@@ -1,16 +1,17 @@
 <?php
 
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MenuController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\BackupController;
 use App\Http\Controllers\AuditLogController;
-use App\Http\Controllers\UserFileController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\SettingAppController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\MediaFolderController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SettingAppController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserFileController;
+use App\Http\Controllers\WorkflowController;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -18,16 +19,16 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'menu.permission'])->group(function () {
 
-      $chartData = [
+    $chartData = [
         ['name' => 'Jan', 'uv' => 4000, 'pv' => 2400],
         ['name' => 'Feb', 'uv' => 3000, 'pv' => 1398],
         ['name' => 'Mar', 'uv' => 2000, 'pv' => 9800],
         ['name' => 'Apr', 'uv' => 2780, 'pv' => 3908],
     ];
 
-    Route::get('dashboard', function () use ($chartData) {
+    Route::get('dashboard', function () {
         return Inertia::render('dashboard', [
-            'chartData' => $chartData
+            /* 'chartData' => $chartData */
         ]);
     })->name('dashboard');
 
@@ -48,7 +49,16 @@ Route::middleware(['auth', 'menu.permission'])->group(function () {
     Route::post('/files', [UserFileController::class, 'store'])->name('files.store');
     Route::delete('/files/{id}', [UserFileController::class, 'destroy'])->name('files.destroy');
     Route::resource('media', MediaFolderController::class);
+
+    /* Route::get('/workflows/apv', [WorkflowController::class, 'index'])->name('workflow.index'); */
+
+    Route::get('/workflow', [WorkflowController::class, 'index'])->name('workflow.index');
+    Route::get('/workflow/create', [WorkflowController::class, 'create'])->name('workflow.create');
+    Route::post('/workflow', [WorkflowController::class, 'store'])->name('workflow.store');
+    Route::get('/workflow/{apv}', [WorkflowController::class, 'show'])->name('workflow.show');
+    Route::post('/workflow/{apv}/transition', [WorkflowController::class, 'transition'])->name('workflow.transition');
+
 });
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';

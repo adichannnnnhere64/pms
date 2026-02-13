@@ -41,13 +41,19 @@ export default function AppSidebarLayout({
   const primaryColor = setting?.warna || '#0ea5e9';
   const primaryForeground = '#ffffff';
 
-  useEffect(() => {
-    const unsubscribe = router.on('navigate', () => {
-      router.reload({ only: ['menus'] });
-    });
 
-    return () => unsubscribe();
-  }, []);
+//     useEffect(() => {
+//   const unsubscribe = router.on('success', (event) => {
+//     // or when coming from specific pages
+//     if (event.detail?.visit?.method && event.detail.visit.method !== 'get') {
+//       router.reload({ only: ['menus'] });
+//     }
+//   });
+//
+//   return () => unsubscribe();
+// }, []);
+
+
 
   return (
     <>
