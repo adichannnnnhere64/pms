@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MediaFolderController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\PermissionController;
@@ -19,18 +20,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'menu.permission'])->group(function () {
 
-    $chartData = [
-        ['name' => 'Jan', 'uv' => 4000, 'pv' => 2400],
-        ['name' => 'Feb', 'uv' => 3000, 'pv' => 1398],
-        ['name' => 'Mar', 'uv' => 2000, 'pv' => 9800],
-        ['name' => 'Apr', 'uv' => 2780, 'pv' => 3908],
-    ];
-
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard', [
-            /* 'chartData' => $chartData */
-        ]);
-    })->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('roles', RoleController::class);
     Route::resource('menus', MenuController::class);
