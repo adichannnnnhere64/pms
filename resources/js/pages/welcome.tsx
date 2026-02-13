@@ -29,10 +29,10 @@ export default function Welcome() {
           {/* Header section */}
           <div className="space-y-6">
             <h1 className="text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/80">
-                            Laravel and react practice
+                            Accounts Payable Voucher System
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                            Sleek clean asf starter kit
+                            Personally Handcrafted by Carlo Cahoy.
             </p>
           </div>
 
