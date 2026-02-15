@@ -67,8 +67,12 @@ class WorkflowController extends Controller
      */
     public function create(): Response
     {
+
+/* auth()->user()->roles->pluck('name') */
         return Inertia::render('Workflow/CreateApv', [
             'vendorOptions' => $this->getVendorOptions(),
+            'particularOptions' => $this->getParticularOptions(),
+            'currentUserRoles' =>  ['Operations'],
             'categoryOptions' => [
                 'office_supplies' => 'Office Supplies',
                 'furniture' => 'Furniture',
@@ -87,9 +91,12 @@ class WorkflowController extends Controller
      */
     public function store(Request $request)
     {
+
         $validated = $request->validate([
             'vendor_name' => 'required|string|max:255',
             'department' => 'required|string|max:100',
+            'is_priority' => 'required|boolean',
+            'particular' => 'required|string',
             'notes' => 'nullable|string',
             'expected_date' => 'required|date|after:today',
             'particulars' => 'required|array|min:1',
@@ -101,6 +108,7 @@ class WorkflowController extends Controller
             'attachments.*' => 'file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
+
         try {
             \DB::beginTransaction();
 
@@ -108,6 +116,8 @@ class WorkflowController extends Controller
             $apv = AccountabilityPaymentVoucher::create([
                 'requested_by' => auth()->id(),
                 'vendor_name' => $validated['vendor_name'],
+                'is_priority' =>(boolean)$validated['is_priority'],
+                'particular' =>$validated['particular'],
                 'department' => $validated['department'],
                 'notes' => $validated['notes'],
                 'expected_date' => $validated['expected_date'],
@@ -176,7 +186,7 @@ class WorkflowController extends Controller
             'canReject' => $canReject,
             'canRelease' => $canRelease,
             'workflowStates' => [
-                'draft' => ['label' => 'Draft', 'color' => 'gray'],
+                'draft' => ['label' => 'Pending', 'color' => 'gray'],
                 'pending_approval' => ['label' => 'Pending Approval', 'color' => 'yellow'],
                 'approved' => ['label' => 'Approved', 'color' => 'green'],
                 'rejected' => ['label' => 'Rejected', 'color' => 'red'],
@@ -234,10 +244,20 @@ class WorkflowController extends Controller
     private function getVendorOptions(): array
     {
         return [
-            ['value' => 'acme_supplies', 'label' => 'Acme Supplies'],
-            ['value' => 'office_depot', 'label' => 'Office Depot'],
-            ['value' => 'tech_solutions', 'label' => 'Tech Solutions'],
-            ['value' => 'furniture_plus', 'label' => 'Furniture Plus'],
+            ['value' => 'sta_maria', 'label' => 'MV Sta. Maria'],
+            ['value' => 'sta_editha', 'label' => 'MV Sta. Editha'],
+            ['value' => 'starlight_express', 'label' => 'Starlight Express'],
+            ['value' => 'montenegro', 'label' => 'Montenegro'],
+        ];
+    }
+
+    private function getParticularOptions(): array
+    {
+        return [
+            ['value' => 'safety_equipments', 'label' => 'Safety Equipments'],
+            ['value' => 'payroll', 'label' => 'Payroll'],
+            ['value' => 'bonus', 'label' => 'Bonus'],
+            ['value' => 'repairs', 'label' => 'Repairs'],
         ];
     }
 }

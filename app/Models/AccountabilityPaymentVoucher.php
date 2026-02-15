@@ -27,6 +27,8 @@ class AccountabilityPaymentVoucher extends Model
         'notes',
         'expected_date',
         'attachments',
+        'is_priority',
+        'particular',
         'status',
         'rejected_reason',
         'approved_by',

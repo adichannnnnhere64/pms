@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -28,32 +29,40 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Particular {
   description: string;
+  particular: string;
   category: string;
   quantity: number;
+  is_priority: boolean;
   unit_price: number;
   amount: number;
 }
 
 interface Props {
   vendorOptions: Array<{ value: string; label: string }>;
+  currentUserRoles: string[];
+  particularOptions: Array<{ value: string; label: string }>;
   categoryOptions: Record<string, string>;
 }
 
-export default function CreateApv({ vendorOptions, categoryOptions }: Props) {
+export default function CreateApv({ vendorOptions, categoryOptions, particularOptions, currentUserRoles }: Props) {
   const { data, setData, post, processing, errors, clearErrors } = useForm<{
     vendor_name: string;
+    particular: string;
     department: string;
     notes: string;
+    is_priority: boolean;
     expected_date: string;
     particulars: Particular[];
     attachments: File[];
   }>({
     vendor_name: '',
-    department: '',
+    department: currentUserRoles[0],
+    particular: '',
     notes: '',
+    is_priority: false,
     expected_date: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     particulars: [
-      { description: '', category: '', quantity: 1, unit_price: 0, amount: 0 }
+      { description: '', category: '', quantity: 1, unit_price: 0, amount: 0, particular: '', is_priority: false }
     ],
     attachments: [],
   });
@@ -161,7 +170,7 @@ export default function CreateApv({ vendorOptions, categoryOptions }: Props) {
   };
 
   const addParticular = () => {
-    const newParticular: Particular = { description: '', category: '', quantity: 1, unit_price: 0, amount: 0 };
+    const newParticular: Particular = { description: '', category: '', quantity: 1, unit_price: 0, amount: 0 ,particular: '', is_priority: false};
     setData('particulars', [...data.particulars, newParticular]);
   };
 
@@ -255,6 +264,41 @@ export default function CreateApv({ vendorOptions, categoryOptions }: Props) {
     }
   };
 
+  const handleCheckboxChange = (field: string, value: any) => {
+
+    // if (value == true) {
+    value = !value;
+    // }
+
+
+        console.log(value);
+    setData('is_priority', value);
+
+    // setData(field as any, value);
+    // if (validationErrors[field]) {
+    //   setValidationErrors(prev => {
+    //     const newErrors = { ...prev };
+    //     delete newErrors[field];
+    //     return newErrors;
+    //   });
+    // }
+    // if ((errors as Record<string, string>)[field]) {
+    //   clearErrors(field as any);
+    // }
+  };
+
+
+
+    const allRoles = [
+  "IT",
+  "Finance",
+  "HR",
+  "Operations",
+  "encoder",
+  "Marketing",
+  "Admin",
+];
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Create APV" />
@@ -282,13 +326,13 @@ export default function CreateApv({ vendorOptions, categoryOptions }: Props) {
                 <h3 className="text-lg font-semibold">Basic Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="vendor_name">Vendor Name *</Label>
+                    <Label htmlFor="vendor_name">Vessel Name *</Label>
                     <Select
                       value={data.vendor_name}
                       onValueChange={(value) => handleFieldChange('vendor_name', value)}
                     >
                       <SelectTrigger className={getError('vendor_name') ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select vendor" />
+                        <SelectValue placeholder="Select vessel" />
                       </SelectTrigger>
                       <SelectContent>
                         {vendorOptions.map((vendor) => (
@@ -315,14 +359,17 @@ export default function CreateApv({ vendorOptions, categoryOptions }: Props) {
                       <SelectTrigger className={getError('department') ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Select department" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="IT">IT</SelectItem>
-                        <SelectItem value="Finance">Finance</SelectItem>
-                        <SelectItem value="HR">HR</SelectItem>
-                        <SelectItem value="Operations">Operations</SelectItem>
-                        <SelectItem value="Marketing">Marketing</SelectItem>
-                        <SelectItem value="Admin">Admin</SelectItem>
-                      </SelectContent>
+
+                                            <SelectContent>
+  {allRoles
+    .filter(role => currentUserRoles.includes(role))
+    .map(role => (
+      <SelectItem key={role} value={role}>
+        {role.charAt(0).toUpperCase() + role.slice(1)}
+      </SelectItem>
+    ))}
+</SelectContent>
+
                     </Select>
                     {getError('department') && (
                       <p className="text-sm text-red-500 flex items-center gap-1">
@@ -350,6 +397,57 @@ export default function CreateApv({ vendorOptions, categoryOptions }: Props) {
                     )}
                   </div>
 
+                <div>
+                  <div className="space-y-3 border rounded-lg p-4">
+                      <div  className="flex items-center space-x-2">
+                        <Checkbox
+                          id="is_priority"
+                          checked={data.is_priority}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setData('is_priority', true);
+                            } else {
+                              setData('is_priority', false);
+                            }
+                          }}
+                        />
+                        <Label htmlFor="is_priority" className="text-sm font-normal cursor-pointer">
+                            Is Priority?
+                        </Label>
+                      </div>
+
+                  </div>
+                  {errors.is_priority && <p className="text-sm text-red-500 mt-2">{errors.is_priority}</p>}
+                </div>
+
+
+                  <div className="space-y-2">
+                    <Label htmlFor="particular">Particulars</Label>
+                    <Select
+                      value={data.particular}
+                      onValueChange={(value) => handleFieldChange('particular', value)}
+                    >
+                      <SelectTrigger className={getError('particular') ? 'border-red-500' : ''}>
+                        <SelectValue placeholder="Select particulars" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {particularOptions.map((vendor) => (
+                          <SelectItem key={vendor.value} value={vendor.value}>
+                            {vendor.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {getError('vendor_name') && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {getError('vendor_name')}
+                      </p>
+                    )}
+                  </div>
+
+
+
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="notes">Notes</Label>
                     <Textarea
@@ -367,7 +465,7 @@ export default function CreateApv({ vendorOptions, categoryOptions }: Props) {
               {/* Particulars / Line Items */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Line Items</h3>
+                  <h3 className="text-lg font-semibold">Supplier Name</h3>
                   <Button type="button" onClick={addParticular} variant="outline" size="sm">
                     <Plus className="w-4 h-4 mr-2" />
                     Add Item
@@ -384,7 +482,7 @@ export default function CreateApv({ vendorOptions, categoryOptions }: Props) {
                 {data.particulars.map((item, index) => (
                   <div key={index} className="p-4 border rounded-lg space-y-4">
                     <div className="flex justify-between items-center">
-                      <h4 className="font-medium">Item #{index + 1}</h4>
+                      <h4 className="font-medium">Name of Supplier #{index + 1}</h4>
                       {data.particulars.length > 1 && (
                         <Button
                           type="button"
@@ -435,7 +533,7 @@ export default function CreateApv({ vendorOptions, categoryOptions }: Props) {
                           </p>
                         )}
                       </div>
-                      <div>
+                      <div className='hidden'>
                         <Label>Quantity *</Label>
                         <Input
                           type="number"

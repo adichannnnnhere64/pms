@@ -34,7 +34,7 @@ return [
         'states' => [
             [
                 'value'      => 'draft',
-                'label'      => 'Draft',
+                'label'      => 'Pending',
                 'is_initial' => true,
                 'is_final'   => false,
             ],

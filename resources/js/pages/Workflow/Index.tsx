@@ -85,12 +85,28 @@ export default function WorkflowIndex({
   const isDirector = userRoles.includes('director');
   const isFinance = userRoles.includes('finance');
 
+
+  const renderStatus = (status: string) => {
+
+        if (status == 'draft') {
+            return 'Pending';
+        }
+
+        return (
+            status.replace('_', ' ').toUpperCase()
+        )
+    }
+
   const renderStatusBadge = (status: string) => {
     const StatusIcon = statusIcons[status] || AlertCircle;
     return (
       <Badge className={`${statusColors[status]} font-medium`}>
         <StatusIcon className="w-3 h-3 mr-1" />
-        {status.replace('_', ' ').toUpperCase()}
+
+
+                {renderStatus(status)}
+
+
       </Badge>
     );
   };

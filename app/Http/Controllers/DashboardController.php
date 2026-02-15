@@ -44,7 +44,7 @@ class DashboardController extends Controller
             ->keyBy('status');
 
         $statusLabels = [
-            'draft' => 'Draft',
+            'draft' => 'Pending',
             'pending_approval' => 'Pending Approval',
             'approved' => 'Approved',
             'rejected' => 'Rejected',

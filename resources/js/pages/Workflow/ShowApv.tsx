@@ -40,6 +40,8 @@ interface APV {
   reference_number: string;
   vendor_name: string;
   department: string;
+  particular: string;
+  is_priority: boolean;
   total_amount: number;
   status: string;
   notes: string | null;
@@ -232,12 +234,25 @@ export default function ShowApv({
                     <p className="font-medium text-lg">₱{apv.total_amount.toLocaleString()}</p>
                   </div>
                 </div>
+
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {apv.notes && (
                   <div className="mt-4">
                     <p className="text-sm text-muted-foreground">Notes</p>
                     <p className="text-sm mt-1">{apv.notes}</p>
                   </div>
                 )}
+                {apv.particular && (
+                  <div className="mt-4">
+                    <p className="text-sm text-muted-foreground">Particular</p>
+                    <p className="text-sm mt-1">{apv.particular}</p>
+                  </div>
+                )}
+                  <div className="mt-4">
+                    <p className="text-sm mt-1">{apv.is_priority ? <Badge variant={'destructive'} >Urgent</Badge>  : <Badge  >Normal</Badge>}</p>
+                  </div>
+                  </div>
               </CardContent>
             </Card>
 
