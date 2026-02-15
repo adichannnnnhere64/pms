@@ -133,7 +133,16 @@ export default function WorkflowIndex({
               <td className="py-3 px-2">{apv.vendor_name}</td>
               {showRequester && <td className="py-3 px-2">{apv.requester?.name}</td>}
               <td className="py-3 px-2">{apv.department}</td>
-              <td className="py-3 px-2 text-right">₱{apv.total_amount.toLocaleString()}</td>
+
+                            <td className="py-3 px-2 text-right">
+  {new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+  }).format(apv.total_amount)}
+</td>
+
+
+
               <td className="py-3 px-2">{format(new Date(apv.expected_date), 'MMM dd, yyyy')}</td>
               <td className="py-3 px-2">{renderStatusBadge(apv.status)}</td>
               <td className="py-3 px-2 text-center">
