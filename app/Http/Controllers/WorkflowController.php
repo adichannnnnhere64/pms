@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Adichan\WorkflowEngine\Models\WorkflowTransition;
 use App\Models\AccountabilityPaymentVoucher;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -45,7 +46,7 @@ class WorkflowController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15, ['*'], 'myRequestsPage');
 
-        // Get completed history
+        // Get completed history (for requesters)
         $completed = AccountabilityPaymentVoucher::query()
             ->where('requested_by', auth()->id())
             ->whereIn('status', ['completed', 'rejected'])
@@ -53,10 +54,24 @@ class WorkflowController extends Controller
             ->orderBy('updated_at', 'desc')
             ->paginate(15, ['*'], 'historyPage');
 
+        // Get action history - forms where current user has taken action (approved, rejected, released)
+        $actionHistoryIds = WorkflowTransition::where('performed_by', auth()->id())
+            ->where('model_type', AccountabilityPaymentVoucher::class)
+            ->whereIn('transition', ['approve', 'reject', 'reject_after_approval', 'release'])
+            ->pluck('model_id')
+            ->unique();
+
+        $actionHistory = AccountabilityPaymentVoucher::query()
+            ->whereIn('id', $actionHistoryIds)
+            ->with(['requester', 'approver', 'releasedBy', 'particulars'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(15, ['*'], 'actionHistoryPage');
+
         return Inertia::render('Workflow/Index', [
             'pendingApprovals' => $pendingApprovals,
             'myRequests' => $myRequests,
             'completed' => $completed,
+            'actionHistory' => $actionHistory,
             'userRoles' => $user->getRoleNames(),
             'workflowStats' => $this->getWorkflowStats($user),
         ]);
@@ -328,6 +343,12 @@ class WorkflowController extends Controller
      */
     private function getWorkflowStats($user): array
     {
+        $myActionCount = WorkflowTransition::where('performed_by', $user->id)
+            ->where('model_type', AccountabilityPaymentVoucher::class)
+            ->whereIn('transition', ['approve', 'reject', 'reject_after_approval', 'release'])
+            ->distinct('model_id')
+            ->count('model_id');
+
         return [
             'pending_approval' => AccountabilityPaymentVoucher::where('status', 'pending_approval')->count(),
             'approved' => AccountabilityPaymentVoucher::where('status', 'approved')->count(),
@@ -337,6 +358,7 @@ class WorkflowController extends Controller
             'my_pending' => AccountabilityPaymentVoucher::where('requested_by', $user->id)
                 ->where('status', 'pending_approval')
                 ->count(),
+            'my_actions' => $myActionCount,
         ];
     }
 

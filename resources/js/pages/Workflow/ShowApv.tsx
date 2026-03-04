@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import AppLayout from '@/layouts/app-layout';
@@ -95,7 +95,7 @@ interface Props {
 
 export default function ShowApv({
   apv,
-  availableTransitions,
+  availableTransitions: _availableTransitions,
   history,
   canEdit,
   canSubmit,
@@ -108,7 +108,7 @@ export default function ShowApv({
   const [rejectReason, setRejectReason] = useState('');
   const [actionType, setActionType] = useState<'reject' | 'reject_after_approval'>('reject');
   const [processing, setProcessing] = useState(false);
-    console.log(history)
+  void _availableTransitions; // Reserved for future use
 
   const breadcrumbs = [
     { title: 'Workflow', href: '/workflow' },
@@ -374,20 +374,69 @@ export default function ShowApv({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {history.map((item) => (
-                    <div key={item.id} className="relative pl-6 pb-4 border-l last:border-l-0 last:pb-0">
-                      <div className="absolute left-0 -translate-x-1/2 w-4 h-4 rounded-full bg-primary" />
-                      <div className="space-y-1">
-                        <p className="font-medium capitalize">{item.transition.replace('_', ' ')}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.performer?.name || 'System'} • {format(new Date(item.performed_at), 'MMM dd, yyyy h:mm a')}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.from_state} → {item.to_state}
-                        </p>
-                      </div>
+                  {/* Show creation as first timeline event */}
+                  <div className="relative pl-6 pb-4 border-l-2 border-muted">
+                    <div className="absolute left-0 -translate-x-1/2 w-4 h-4 rounded-full bg-gray-400 ring-4 ring-background" />
+                    <div className="space-y-1">
+                      <p className="font-medium">Created</p>
+                      <p className="text-sm text-muted-foreground">
+                        by <span className="font-medium text-foreground">{apv.requester?.name || 'Unknown'}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(apv.created_at), 'MMM dd, yyyy h:mm a')}
+                      </p>
+                      <Badge variant="outline" className="text-xs">Draft</Badge>
                     </div>
-                  ))}
+                  </div>
+                  {/* Workflow transitions */}
+                  {history.map((item) => {
+                      const transitionConfig: Record<string, { label: string; icon: string; color: string }> = {
+                        submit: { label: 'Submitted for Approval', icon: '📤', color: 'bg-blue-500' },
+                        approve: { label: 'Approved', icon: '✅', color: 'bg-green-500' },
+                        reject: { label: 'Rejected', icon: '❌', color: 'bg-red-500' },
+                        reject_after_approval: { label: 'Rejected After Approval', icon: '❌', color: 'bg-red-500' },
+                        release: { label: 'Payment Released', icon: '💰', color: 'bg-emerald-500' },
+                      };
+                      const config = transitionConfig[item.transition] || { label: item.transition.replace(/_/g, ' '), icon: '📋', color: 'bg-gray-500' };
+                      const stateLabel = (state: string) => workflowStates[state]?.label || state.replace(/_/g, ' ');
+
+                      return (
+                        <div key={item.id} className="relative pl-6 pb-4 border-l-2 border-muted last:border-l-0 last:pb-0">
+                          <div className={`absolute left-0 -translate-x-1/2 w-4 h-4 rounded-full ${config.color} ring-4 ring-background`} />
+                          <div className="space-y-1">
+                            <p className="font-medium">{config.label}</p>
+                            <p className="text-sm text-muted-foreground">
+                              by <span className="font-medium text-foreground">{item.performer?.name || 'System'}</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(item.performed_at), 'MMM dd, yyyy h:mm a')}
+                            </p>
+                            <div className="flex items-center gap-1 text-xs">
+                              <Badge variant="outline" className="text-xs">
+                                {stateLabel(item.from_state)}
+                              </Badge>
+                              <span className="text-muted-foreground">→</span>
+                              <Badge variant="outline" className="text-xs">
+                                {stateLabel(item.to_state)}
+                              </Badge>
+                            </div>
+                            {/* Show context details like rejection reason or comments */}
+                            {item.context?.rejected_reason && (
+                              <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800">
+                                <p className="text-xs font-medium text-red-700 dark:text-red-400">Reason:</p>
+                                <p className="text-sm text-red-600 dark:text-red-300">{item.context.rejected_reason}</p>
+                              </div>
+                            )}
+                            {item.context?.comments && (
+                              <div className="mt-2 p-2 bg-muted rounded">
+                                <p className="text-xs font-medium text-muted-foreground">Comment:</p>
+                                <p className="text-sm">{item.context.comments}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
               </CardContent>
             </Card>

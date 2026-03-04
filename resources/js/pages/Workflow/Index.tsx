@@ -42,12 +42,14 @@ interface Props {
   pendingApprovals: any;
   myRequests: any;
   completed: any;
+  actionHistory: any;
   userRoles: string[];
   workflowStats: {
     pending_approval: number;
     approved: number;
     my_drafts: number;
     my_pending: number;
+    my_actions: number;
   };
 }
 
@@ -71,6 +73,7 @@ export default function WorkflowIndex({
   pendingApprovals,
   myRequests,
   completed,
+  actionHistory,
   userRoles,
   workflowStats
 }: Props) {
@@ -237,6 +240,16 @@ export default function WorkflowIndex({
               <div className="text-2xl font-bold">{workflowStats.my_pending}</div>
             </CardContent>
           </Card>
+          {(isManager || isDirector || isFinance) && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">My Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{workflowStats.my_actions}</div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Tabs */}
@@ -246,6 +259,9 @@ export default function WorkflowIndex({
               <TabsTrigger value="pending">Pending My Action</TabsTrigger>
             )}
             <TabsTrigger value="my-requests">My Requests</TabsTrigger>
+            {(isManager || isDirector || isFinance) && (
+              <TabsTrigger value="action-history">Action History</TabsTrigger>
+            )}
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
@@ -272,6 +288,22 @@ export default function WorkflowIndex({
               </CardContent>
             </Card>
           </TabsContent>
+
+          {(isManager || isDirector || isFinance) && (
+            <TabsContent value="action-history">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Action History</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Forms you have approved, rejected, or released
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  {renderAPVTable(actionHistory, true)}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
 
           <TabsContent value="history">
             <Card>
