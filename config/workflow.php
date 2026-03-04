@@ -87,6 +87,29 @@ return [
                 'from'  => 'pending_approval',
                 'to'    => 'approved',
                 'guard' => 'workflow.can_approve',
+                'requirements' => [
+                    [
+                        'key' => 'comment',
+                        'type' => 'message',
+                        'label' => 'Approval Comment',
+                        'required' => false,
+                        'config' => [
+                            'placeholder' => 'Add an optional comment...',
+                            'max_length' => 500,
+                        ],
+                    ],
+                    [
+                        'key' => 'attachments',
+                        'type' => 'files',
+                        'label' => 'Supporting Documents',
+                        'required' => false,
+                        'config' => [
+                            'max_files' => 10,
+                            'max_size' => 10240, // 10MB per file
+                            'mimes' => ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx'],
+                        ],
+                    ],
+                ],
             ],
 
             // Step 2 — Approver can send back to the requestor
@@ -106,6 +129,29 @@ return [
                 'from'  => 'approved',
                 'to'    => 'completed',
                 'guard' => 'workflow.can_process_payment',
+                'requirements' => [
+                    [
+                        'key' => 'comment',
+                        'type' => 'message',
+                        'label' => 'Release Comment',
+                        'required' => false,
+                        'config' => [
+                            'placeholder' => 'Add an optional comment...',
+                            'max_length' => 500,
+                        ],
+                    ],
+                    [
+                        'key' => 'attachments',
+                        'type' => 'files',
+                        'label' => 'Payment Proof / Documents',
+                        'required' => false,
+                        'config' => [
+                            'max_files' => 10,
+                            'max_size' => 10240, // 10MB per file
+                            'mimes' => ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx'],
+                        ],
+                    ],
+                ],
             ],
 
             // Finance can also reject an already-approved APV (edge-case)
