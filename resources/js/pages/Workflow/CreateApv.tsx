@@ -74,7 +74,7 @@ export default function CreateApv({ vendorOptions, categoryOptions, particularOp
 
   const breadcrumbs = [
     { title: 'Workflow', href: '/workflow' },
-    { title: 'Create APV', href: '#' },
+    { title: 'Create RAF', href: '#' },
   ];
 
   // Helper to get error for a field (checks both local and server errors)
@@ -301,7 +301,7 @@ export default function CreateApv({ vendorOptions, categoryOptions, particularOp
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Create APV" />
+      <Head title="Create RAF" />
 
       <div className="flex-1 p-4 md:p-6">
         <Card className="max-w-6xl mx-auto">
@@ -655,7 +655,7 @@ export default function CreateApv({ vendorOptions, categoryOptions, particularOp
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  {processing ? 'Creating...' : 'Create APV'}
+                  {processing ? 'Creating...' : 'Create RAF'}
                 </Button>
               </div>
             </form>
