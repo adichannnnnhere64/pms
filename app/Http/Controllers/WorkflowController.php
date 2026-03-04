@@ -150,7 +150,7 @@ class WorkflowController extends Controller
             \DB::commit();
 
             return redirect()->route('workflow.show', $apv->id)
-                ->with('success', 'APV created successfully');
+                ->with('success', 'RAF created successfully');
         } catch (\Exception $e) {
             \DB::rollBack();
             return back()->withErrors(['error' => 'Failed to create APV: ' . $e->getMessage()]);
@@ -218,7 +218,7 @@ class WorkflowController extends Controller
 
             $transition = $apv->transition($validated['transition'], $context);
 
-            return back()->with('success', "APV {$validated['transition']} successful");
+            return back()->with('success', "RAF {$validated['transition']} successful");
         } catch (\DomainException $e) {
             return back()->withErrors(['transition' => $e->getMessage()]);
         }

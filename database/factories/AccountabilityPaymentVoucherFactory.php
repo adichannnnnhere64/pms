@@ -46,7 +46,7 @@ class AccountabilityPaymentVoucherFactory extends Factory
         }
 
         return [
-            'reference_number' => $this->faker->unique()->regexify('APV-[0-9]{6}-[0-9]{4}'),
+            'reference_number' => $this->faker->unique()->regexify('RAF-[0-9]{6}-[0-9]{4}'),
             'requested_by' => User::factory(),
             'vendor_name' => $this->faker->company(),
             'department' => $this->faker->randomElement([

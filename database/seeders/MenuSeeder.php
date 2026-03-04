@@ -128,7 +128,7 @@ class MenuSeeder extends Seeder
         ]);
 
         Menu::create([
-            'title' => 'APV',
+            'title' => 'RAF',
             'icon' => 'Folder',
             'route' => '/workflow',
             'order' => 4,

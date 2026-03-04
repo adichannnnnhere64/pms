@@ -131,7 +131,7 @@ class AccountabilityPaymentVoucher extends Model
 
     public static function generateReferenceNumber(): string
     {
-        $prefix = 'APV-' . now()->format('Ym') . '-';
+        $prefix = 'RAF-' . now()->format('Ym') . '-';
         $latest = static::withTrashed()
             ->where('reference_number', 'like', $prefix . '%')
             ->orderByDesc('id')

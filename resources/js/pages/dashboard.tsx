@@ -74,7 +74,7 @@ export default function Dashboard({
   departmentSpending,
 }: DashboardProps) {
   const summaryData = [
-    { label: 'Total APVs', value: formatNumber(summaryStats?.totalApvs ?? 0), color: '#3b82f6' },
+    { label: 'Total RAF', value: formatNumber(summaryStats?.totalApvs ?? 0), color: '#3b82f6' },
     { label: 'Pending Approval', value: formatNumber(summaryStats?.pendingApproval ?? 0), color: '#fbbf24' },
     { label: 'Approved', value: formatNumber(summaryStats?.totalApproved ?? 0), color: '#22c55e' },
     { label: 'Total Amount', value: formatCurrency(summaryStats?.totalAmount ?? 0), color: '#8b5cf6' },

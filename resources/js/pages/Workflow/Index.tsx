@@ -183,7 +183,7 @@ export default function WorkflowIndex({
             <Link href="/workflow/create">
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
-                New APV
+                New RAF
               </Button>
             </Link>
           )}
