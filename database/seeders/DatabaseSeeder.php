@@ -71,7 +71,7 @@ public function run(): void
         'email' => 'supervisor@yahoo.com',
         'password' => Hash::make('supervisor'),
     ]);
-    $supervisor->assignRole('supervisor');
+    $supervisor->assignRole('director');
 }
 
 }
