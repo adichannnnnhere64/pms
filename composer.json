@@ -15,7 +15,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
-        "adichan/workflows": "dev-master",
+        "adichan/workflows-local": "*",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/octane": "^2.13",
@@ -73,6 +73,10 @@
             "dont-discover": []
         }
     },
+    "repositories" : [{
+        "type" : "path",
+        "url" : "./app-modules/workflow"
+    }],
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",

@@ -368,6 +368,14 @@ class WorkflowController extends Controller
             ->distinct('model_id')
             ->count('model_id');
 
+        // Count pending items for current user based on role
+        $pendingMyAction = 0;
+        if ($user->hasRole('manager')) {
+            $pendingMyAction = AccountabilityPaymentVoucher::where('status', 'pending_approval')->count();
+        } elseif ($user->hasAnyRole(['director', 'finance'])) {
+            $pendingMyAction = AccountabilityPaymentVoucher::where('status', 'approved')->count();
+        }
+
         return [
             'pending_approval' => AccountabilityPaymentVoucher::where('status', 'pending_approval')->count(),
             'approved' => AccountabilityPaymentVoucher::where('status', 'approved')->count(),
@@ -378,6 +386,7 @@ class WorkflowController extends Controller
                 ->where('status', 'pending_approval')
                 ->count(),
             'my_actions' => $myActionCount,
+            'pending_my_action' => $pendingMyAction,
         ];
     }
 

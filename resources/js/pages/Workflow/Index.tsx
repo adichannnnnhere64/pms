@@ -50,6 +50,7 @@ interface Props {
     my_drafts: number;
     my_pending: number;
     my_actions: number;
+    pending_my_action: number;
   };
 }
 
@@ -256,7 +257,14 @@ export default function WorkflowIndex({
         <Tabs defaultValue="my-requests" className="space-y-4">
           <TabsList>
             {(isManager || isDirector || isFinance) && (
-              <TabsTrigger value="pending">Pending My Action</TabsTrigger>
+              <TabsTrigger value="pending" className="flex items-center gap-2">
+                Pending My Action
+                {workflowStats.pending_my_action > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold text-white bg-red-500 rounded-full">
+                    {workflowStats.pending_my_action}
+                  </span>
+                )}
+              </TabsTrigger>
             )}
             <TabsTrigger value="my-requests">My Requests</TabsTrigger>
             {(isManager || isDirector || isFinance) && (
