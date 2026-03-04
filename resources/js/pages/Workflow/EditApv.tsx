@@ -93,9 +93,9 @@ export default function EditApv({ apv, vendorOptions, categoryOptions, particula
     particulars: apv.particulars.map((item) => ({
       description: item.description,
       category: item.category,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-      amount: item.amount,
+      quantity: Number(item.quantity) || 0,
+      unit_price: Number(item.unit_price) || 0,
+      amount: Number(item.amount) || 0,
       particular: '',
       is_priority: false,
     })),
@@ -273,7 +273,7 @@ export default function EditApv({ apv, vendorOptions, categoryOptions, particula
     setData('existing_attachments', updated);
   };
 
-  const totalAmount = data.particulars.reduce((sum, item) => sum + (item.amount || 0), 0);
+  const totalAmount = data.particulars.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
