@@ -87,6 +87,33 @@ class WorkflowController extends Controller
     }
 
     /**
+     * Show form to edit APV
+     */
+    public function edit(AccountabilityPaymentVoucher $apv): Response
+    {
+        $this->authorizeEdit($apv);
+
+        $apv->load(['particulars']);
+
+        return Inertia::render('Workflow/EditApv', [
+            'apv' => $apv,
+            'vendorOptions' => $this->getVendorOptions(),
+            'particularOptions' => $this->getParticularOptions(),
+            'currentUserRoles' => auth()->user()->roles->pluck('name')->toArray(),
+            'categoryOptions' => [
+                'office_supplies' => 'Office Supplies',
+                'furniture' => 'Furniture',
+                'equipment' => 'Equipment',
+                'software' => 'Software',
+                'services' => 'Services',
+                'travel' => 'Travel',
+                'utilities' => 'Utilities',
+                'other' => 'Other',
+            ],
+        ]);
+    }
+
+    /**
      * Store new APV
      */
     public function store(Request $request)
@@ -154,6 +181,78 @@ class WorkflowController extends Controller
         } catch (\Exception $e) {
             \DB::rollBack();
             return back()->withErrors(['error' => 'Failed to create APV: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Update existing APV
+     */
+    public function update(Request $request, AccountabilityPaymentVoucher $apv)
+    {
+        $this->authorizeEdit($apv);
+
+        $validated = $request->validate([
+            'vendor_name' => 'required|string|max:255',
+            'department' => 'required|string|max:100',
+            'is_priority' => 'required|boolean',
+            'particular' => 'required|string',
+            'notes' => 'nullable|string',
+            'expected_date' => 'required|date|after:today',
+            'particulars' => 'required|array|min:1',
+            'particulars.*.description' => 'required|string',
+            'particulars.*.category' => 'required|string',
+            'particulars.*.quantity' => 'required|integer|min:1',
+            'particulars.*.unit_price' => 'required|numeric|min:0',
+            'existing_attachments' => 'array|nullable',
+            'existing_attachments.*.name' => 'required|string',
+            'existing_attachments.*.path' => 'required|string',
+            'existing_attachments.*.size' => 'required|integer',
+            'existing_attachments.*.type' => 'required|string',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        try {
+            \DB::beginTransaction();
+
+            $apv->update([
+                'vendor_name' => $validated['vendor_name'],
+                'is_priority' => (bool) $validated['is_priority'],
+                'particular' => $validated['particular'],
+                'department' => $validated['department'],
+                'notes' => $validated['notes'],
+                'expected_date' => $validated['expected_date'],
+            ]);
+
+            $apv->particulars()->delete();
+            foreach ($validated['particulars'] as $item) {
+                $apv->particulars()->create($item);
+            }
+
+            $attachments = $validated['existing_attachments'] ?? [];
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('apv-attachments', 'public');
+                    $attachments[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'type' => $file->getMimeType(),
+                    ];
+                }
+            }
+            $apv->update([
+                'attachments' => $attachments,
+                'total_amount' => $apv->computed_total,
+            ]);
+
+            \DB::commit();
+
+            return redirect()->route('workflow.show', $apv->id)
+                ->with('success', 'RAF updated successfully');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to update APV: ' . $e->getMessage()]);
         }
     }
 
@@ -262,5 +361,12 @@ class WorkflowController extends Controller
             ['value' => 'bonus', 'label' => 'Bonus'],
             ['value' => 'repairs', 'label' => 'Repairs'],
         ];
+    }
+
+    private function authorizeEdit(AccountabilityPaymentVoucher $apv): void
+    {
+        if ($apv->status !== 'draft' || $apv->requested_by !== auth()->id()) {
+            abort(403);
+        }
     }
 }

@@ -45,6 +45,8 @@ Route::middleware(['auth', 'menu.permission'])->group(function () {
     Route::get('/workflow', [WorkflowController::class, 'index'])->name('workflow.index');
     Route::get('/workflow/create', [WorkflowController::class, 'create'])->name('workflow.create');
     Route::post('/workflow', [WorkflowController::class, 'store'])->name('workflow.store');
+    Route::get('/workflow/{apv}/edit', [WorkflowController::class, 'edit'])->name('workflow.edit');
+    Route::put('/workflow/{apv}', [WorkflowController::class, 'update'])->name('workflow.update');
     Route::get('/workflow/{apv}', [WorkflowController::class, 'show'])->name('workflow.show');
     Route::post('/workflow/{apv}/transition', [WorkflowController::class, 'transition'])->name('workflow.transition');
 

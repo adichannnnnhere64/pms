@@ -13,7 +13,8 @@ import {
   XCircle,
   AlertCircle,
   Plus,
-  Eye
+  Eye,
+  Pencil
 } from 'lucide-react';
 
 interface APV {
@@ -111,7 +112,7 @@ export default function WorkflowIndex({
     );
   };
 
-  const renderAPVTable = (apvs: any, showRequester = false) => (
+  const renderAPVTable = (apvs: any, showRequester = false, allowEdit = false) => (
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
@@ -146,11 +147,20 @@ export default function WorkflowIndex({
               <td className="py-3 px-2">{format(new Date(apv.expected_date), 'MMM dd, yyyy')}</td>
               <td className="py-3 px-2">{renderStatusBadge(apv.status)}</td>
               <td className="py-3 px-2 text-center">
-                <Link href={`/workflow/${apv.id}`}>
-                  <Button variant="ghost" size="sm">
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                </Link>
+                <div className="flex items-center justify-center gap-1">
+                  <Link href={`/workflow/${apv.id}`}>
+                    <Button variant="ghost" size="sm">
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                  {allowEdit && apv.status === 'draft' && (
+                    <Link href={`/workflow/${apv.id}/edit`}>
+                      <Button variant="ghost" size="sm">
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
@@ -258,7 +268,7 @@ export default function WorkflowIndex({
                 <CardTitle>My Requests</CardTitle>
               </CardHeader>
               <CardContent>
-                {renderAPVTable(myRequests)}
+                {renderAPVTable(myRequests, false, true)}
               </CardContent>
             </Card>
           </TabsContent>
