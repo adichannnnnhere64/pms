@@ -76,9 +76,9 @@ return [
                 'to'        => 'pending_approval',
                 'guard'     => 'workflow.can_submit',
                 // Must have at least one attachment and one particular
-                'validator' => function (array $context): bool {
-                    return ! empty($context['attachments']);
-                },
+                /* 'validator' => function (array $context): bool { */
+                /*     return ! empty($context['attachments']); */
+                /* }, */
             ],
 
             // Step 2 — Approver validates and signs off

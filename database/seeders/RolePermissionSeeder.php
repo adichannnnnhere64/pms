@@ -41,6 +41,11 @@ class RolePermissionSeeder extends Seeder
             'Workflows' => [
                 'workflows.view',
                 'apv.view',
+                'apv.create',
+                'apv.submit',
+                'apv.approve',
+                'apv.reject',
+                'apv.rejeirelease',
             ]
         ];
 

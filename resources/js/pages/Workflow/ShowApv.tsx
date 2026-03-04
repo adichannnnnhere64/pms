@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
@@ -26,11 +25,9 @@ import {
   ArrowLeft,
   CheckCircle2,
   XCircle,
-  Clock,
   FileText,
   Download,
   Send,
-  UserCheck,
   DollarSign,
 } from 'lucide-react';
 import { Label } from '@radix-ui/react-label';
@@ -110,8 +107,8 @@ export default function ShowApv({
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [actionType, setActionType] = useState<'reject' | 'reject_after_approval'>('reject');
-
-  const { post, processing } = useForm();
+  const [processing, setProcessing] = useState(false);
+    console.log(history)
 
   const breadcrumbs = [
     { title: 'Workflow', href: '/workflow' },
@@ -123,22 +120,27 @@ export default function ShowApv({
       setActionType(transition);
       setRejectDialogOpen(true);
     } else {
-      post(`/workflow/${apv.id}/transition`, {
-        data: { transition, attachments: [] },
+      setProcessing(true);
+      router.post(`/workflow/${apv.id}/transition`, {
+        transition,
+        attachments: [],
+      }, {
+        onFinish: () => setProcessing(false),
       });
     }
   };
 
   const handleReject = () => {
-    post(`/workflow/${apv.id}/transition`, {
-      data: {
-        transition: actionType,
-        rejected_reason: rejectReason,
-      },
+    setProcessing(true);
+    router.post(`/workflow/${apv.id}/transition`, {
+      transition: actionType,
+      rejected_reason: rejectReason,
+    }, {
       onSuccess: () => {
         setRejectDialogOpen(false);
         setRejectReason('');
       },
+      onFinish: () => setProcessing(false),
     });
   };
 
@@ -175,14 +177,14 @@ export default function ShowApv({
                 <Button variant="outline">Edit</Button>
               </Link>
             )}
-            {canSubmit && Object.keys(availableTransitions).includes('submit') && (
-              <Button onClick={() => handleTransition('submit')}>
+            {canSubmit && apv.status === 'draft' && (
+              <Button onClick={() => handleTransition('submit')} disabled={processing}>
                 <Send className="w-4 h-4 mr-2" />
                 Submit for Approval
               </Button>
             )}
-            {canApprove && Object.keys(availableTransitions).includes('approve') && (
-              <Button onClick={() => handleTransition('approve')}>
+            {canApprove && apv.status === 'pending_approval' && (
+              <Button onClick={() => handleTransition('approve')} disabled={processing}>
                 <CheckCircle2 className="w-4 h-4 mr-2" />
                 Approve
               </Button>
@@ -190,6 +192,7 @@ export default function ShowApv({
             {canReject && (
               <Button
                 variant="destructive"
+                disabled={processing}
                 onClick={() => handleTransition(
                   apv.status === 'approved' ? 'reject_after_approval' : 'reject'
                 )}
@@ -198,8 +201,8 @@ export default function ShowApv({
                 Reject
               </Button>
             )}
-            {canRelease && Object.keys(availableTransitions).includes('release') && (
-              <Button onClick={() => handleTransition('release')}>
+            {canRelease && apv.status === 'approved' && (
+              <Button onClick={() => handleTransition('release')} disabled={processing}>
                 <DollarSign className="w-4 h-4 mr-2" />
                 Release Payment
               </Button>
@@ -235,24 +238,23 @@ export default function ShowApv({
                   </div>
                 </div>
 
-
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {apv.notes && (
+                  {apv.notes && (
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground">Notes</p>
+                      <p className="text-sm mt-1">{apv.notes}</p>
+                    </div>
+                  )}
+                  {apv.particular && (
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground">Particular</p>
+                      <p className="text-sm mt-1">{apv.particular}</p>
+                    </div>
+                  )}
                   <div className="mt-4">
-                    <p className="text-sm text-muted-foreground">Notes</p>
-                    <p className="text-sm mt-1">{apv.notes}</p>
+                    <p className="text-sm mt-1">{apv.is_priority ? <Badge variant={'destructive'}>Urgent</Badge> : <Badge>Normal</Badge>}</p>
                   </div>
-                )}
-                {apv.particular && (
-                  <div className="mt-4">
-                    <p className="text-sm text-muted-foreground">Particular</p>
-                    <p className="text-sm mt-1">{apv.particular}</p>
-                  </div>
-                )}
-                  <div className="mt-4">
-                    <p className="text-sm mt-1">{apv.is_priority ? <Badge variant={'destructive'} >Urgent</Badge>  : <Badge  >Normal</Badge>}</p>
-                  </div>
-                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -372,7 +374,7 @@ export default function ShowApv({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {history.map((item, index) => (
+                  {history.map((item) => (
                     <div key={item.id} className="relative pl-6 pb-4 border-l last:border-l-0 last:pb-0">
                       <div className="absolute left-0 -translate-x-1/2 w-4 h-4 rounded-full bg-primary" />
                       <div className="space-y-1">

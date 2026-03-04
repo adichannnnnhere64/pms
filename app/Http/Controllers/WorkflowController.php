@@ -16,12 +16,12 @@ class WorkflowController extends Controller
     {
         $user = $request->user();
 
-        \Log::info('hello');
+        $user = auth()->user();
+
 
         // Get APVs pending user action based on role
         $pendingApprovals = AccountabilityPaymentVoucher::query()
-            ->when($user->hasRole('encoder') || true, function ($query) {
-                // Encoder sees their own drafts and rejected items
+            ->when($user->hasRole('encoder'), function ($query) {
                 $query->where('requested_by', auth()->id())
                     ->whereIn('status', ['draft', 'rejected']);
             })
@@ -171,10 +171,10 @@ class WorkflowController extends Controller
 
         // Check user permissions for this APV
         $canEdit = $apv->status === 'draft' && auth()->id() === $apv->requested_by;
-        $canSubmit = auth()->user()->can('workflow.can_submit') && $apv->status === 'draft';
-        $canApprove = auth()->user()->can('workflow.can_approve') && $apv->status === 'pending_approval';
-        $canReject = auth()->user()->can('workflow.can_approve') && in_array($apv->status, ['pending_approval', 'approved']);
-        $canRelease = auth()->user()->can('workflow.can_release') && $apv->status === 'approved';
+        $canSubmit  = auth()->user()->can('apv.submit') && $apv->status === 'draft';
+        $canApprove = auth()->user()->can('apv.approve') && $apv->status === 'pending_approval';
+        $canReject  = auth()->user()->can('apv.reject') && in_array($apv->status, ['pending_approval', 'approved']);
+        $canRelease = auth()->user()->can('apv.release') && $apv->status === 'approved';
 
         return Inertia::render('Workflow/ShowApv', [
             'apv' => $apv,
@@ -203,8 +203,10 @@ class WorkflowController extends Controller
         $validated = $request->validate([
             'transition' => 'required|string',
             'rejected_reason' => 'required_if:transition,reject,reject_after_approval|string|nullable',
-            'attachments' => 'required_if:transition,submit|array|nullable',
+            /* 'attachments' => 'required_if:transition,submit|array|nullable', */
+            'attachments' => 'array|nullable',
         ]);
+
 
         try {
             $context = match ($validated['transition']) {
@@ -212,6 +214,7 @@ class WorkflowController extends Controller
                 'reject', 'reject_after_approval' => ['rejected_reason' => $validated['rejected_reason']],
                 default => [],
             };
+
 
             $transition = $apv->transition($validated['transition'], $context);
 

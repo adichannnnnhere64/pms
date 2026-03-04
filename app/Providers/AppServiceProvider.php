@@ -47,5 +47,11 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasAnyRole(['director', 'finance']);
         });
 
+
+        Gate::define('workflow.can_submit', fn ($user, $model = null) => $user->hasPermissionTo('apv.submit'));
+        Gate::define('workflow.can_approve', fn ($user, $model = null) => $user->hasPermissionTo('apv.approve'));
+        Gate::define('workflow.can_reject', fn ($user, $model = null) => $user->hasPermissionTo('apv.reject'));
+        Gate::define('workflow.can_process_payment', fn ($user, $model = null) => $user->hasPermissionTo('apv.release'));
+
     }
 }
