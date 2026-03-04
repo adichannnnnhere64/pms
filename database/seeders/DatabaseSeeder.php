@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
     // DatabaseSeeder.php
 public function run(): void
 {
+
+
+
     // First seed ALL roles and permissions
     $this->call([
         RolePermissionSeeder::class,
@@ -62,6 +65,13 @@ public function run(): void
         'password' => Hash::make('manager'),
     ]);
     $manager->assignRole('manager');
+
+    $supervisor = User::factory()->create([
+        'name' => 'Supervisor',
+        'email' => 'supervisor@yahoo.com',
+        'password' => Hash::make('supervisor'),
+    ]);
+    $supervisor->assignRole('supervisor');
 }
 
 }
