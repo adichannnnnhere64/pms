@@ -318,14 +318,33 @@ class WorkflowController extends Controller
             'transition' => 'required|string',
             'rejected_reason' => 'required_if:transition,reject,reject_after_approval|string|nullable',
             /* 'attachments' => 'required_if:transition,submit|array|nullable', */
+            'comment' => 'nullable|string|max:500',
             'attachments' => 'array|nullable',
+            'attachments.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:10240',
         ]);
 
 
         try {
+            $releaseAttachments = [];
+            if ($validated['transition'] === 'release' && $request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('apv-release-attachments', 'public');
+                    $releaseAttachments[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'type' => $file->getClientMimeType(),
+                    ];
+                }
+            }
+
             $context = match ($validated['transition']) {
                 'submit' => ['attachments' => $validated['attachments'] ?? []],
                 'reject', 'reject_after_approval' => ['rejected_reason' => $validated['rejected_reason']],
+                'release' => [
+                    'comment' => $validated['comment'] ?? null,
+                    'attachments' => $releaseAttachments,
+                ],
                 default => [],
             };
 

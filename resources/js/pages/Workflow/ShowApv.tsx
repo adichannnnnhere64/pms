@@ -107,6 +107,10 @@ export default function ShowApv({
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [actionType, setActionType] = useState<'reject' | 'reject_after_approval'>('reject');
+  const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
+  const [releaseComment, setReleaseComment] = useState('');
+  const [releaseAttachments, setReleaseAttachments] = useState<File[]>([]);
+  const [releaseFileError, setReleaseFileError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   void _availableTransitions; // Reserved for future use
 
@@ -119,6 +123,8 @@ export default function ShowApv({
     if (transition === 'reject' || transition === 'reject_after_approval') {
       setActionType(transition);
       setRejectDialogOpen(true);
+    } else if (transition === 'release') {
+      setReleaseDialogOpen(true);
     } else {
       setProcessing(true);
       router.post(`/workflow/${apv.id}/transition`, {
@@ -128,6 +134,51 @@ export default function ShowApv({
         onFinish: () => setProcessing(false),
       });
     }
+  };
+
+  const handleReleaseFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+    const fileErrors: string[] = [];
+    const allowedTypes = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx'];
+
+    files.forEach((file) => {
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+
+      if (!allowedTypes.includes(fileExt || '')) {
+        fileErrors.push(`${file.name}: Invalid file type.`);
+      } else if (file.size > 10 * 1024 * 1024) {
+        fileErrors.push(`${file.name}: File size exceeds 10MB limit.`);
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    setReleaseFileError(fileErrors.length > 0 ? fileErrors.join('\n') : null);
+    setReleaseAttachments((prev) => [...prev, ...validFiles]);
+    e.target.value = '';
+  };
+
+  const removeReleaseFile = (index: number) => {
+    setReleaseAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRelease = () => {
+    setProcessing(true);
+    router.post(`/workflow/${apv.id}/transition`, {
+      transition: 'release',
+      comment: releaseComment,
+      attachments: releaseAttachments,
+    }, {
+      forceFormData: true,
+      onSuccess: () => {
+        setReleaseDialogOpen(false);
+        setReleaseComment('');
+        setReleaseAttachments([]);
+        setReleaseFileError(null);
+      },
+      onFinish: () => setProcessing(false),
+    });
   };
 
   const handleReject = () => {
@@ -399,6 +450,7 @@ export default function ShowApv({
                       };
                       const config = transitionConfig[item.transition] || { label: item.transition.replace(/_/g, ' '), icon: '📋', color: 'bg-gray-500' };
                       const stateLabel = (state: string) => workflowStates[state]?.label || state.replace(/_/g, ' ');
+                      const commentText = item.context?.comment || item.context?.comments;
 
                       return (
                         <div key={item.id} className="relative pl-6 pb-4 border-l-2 border-muted last:border-l-0 last:pb-0">
@@ -427,10 +479,31 @@ export default function ShowApv({
                                 <p className="text-sm text-red-600 dark:text-red-300">{item.context.rejected_reason}</p>
                               </div>
                             )}
-                            {item.context?.comments && (
+                            {commentText && (
                               <div className="mt-2 p-2 bg-muted rounded">
                                 <p className="text-xs font-medium text-muted-foreground">Comment:</p>
-                                <p className="text-sm">{item.context.comments}</p>
+                                <p className="text-sm">{commentText}</p>
+                              </div>
+                            )}
+                            {Array.isArray(item.context?.attachments) && item.context.attachments.length > 0 && (
+                              <div className="mt-2 space-y-2">
+                                <p className="text-xs font-medium text-muted-foreground">Attachments:</p>
+                                {item.context.attachments.map((file: { name: string; path: string; size: number }, index: number) => (
+                                  <div key={`${item.id}-attachment-${index}`} className="flex items-center justify-between p-2 bg-muted rounded">
+                                    <div className="flex items-center">
+                                      <FileText className="w-4 h-4 mr-2" />
+                                      <span className="text-sm">{file.name}</span>
+                                      <span className="text-xs text-muted-foreground ml-2">
+                                        ({(file.size / 1024).toFixed(0)} KB)
+                                      </span>
+                                    </div>
+                                    <Button variant="ghost" size="sm" asChild>
+                                      <a href={`/storage/${file.path}`} download>
+                                        <Download className="w-4 h-4" />
+                                      </a>
+                                    </Button>
+                                  </div>
+                                ))}
                               </div>
                             )}
                           </div>
@@ -467,6 +540,65 @@ export default function ShowApv({
             </Button>
             <Button variant="destructive" onClick={handleReject} disabled={!rejectReason || processing}>
               Confirm Rejection
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Release Dialog */}
+      <Dialog open={releaseDialogOpen} onOpenChange={setReleaseDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Release Payment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="releaseComment">Release Comment</Label>
+              <Textarea
+                id="releaseComment"
+                placeholder="Add an optional comment..."
+                value={releaseComment}
+                onChange={(e) => setReleaseComment(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="releaseAttachments">Payment Proof / Documents</Label>
+              <input
+                id="releaseAttachments"
+                type="file"
+                multiple
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                onChange={handleReleaseFileChange}
+              />
+              {releaseFileError && (
+                <p className="text-sm text-red-600 whitespace-pre-line">{releaseFileError}</p>
+              )}
+              {releaseAttachments.length > 0 && (
+                <div className="space-y-2">
+                  {releaseAttachments.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="flex items-center justify-between p-2 bg-muted rounded">
+                      <div className="flex items-center">
+                        <FileText className="w-4 h-4 mr-2" />
+                        <span className="text-sm">{file.name}</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ({(file.size / 1024).toFixed(0)} KB)
+                        </span>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => removeReleaseFile(index)}>
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReleaseDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRelease} disabled={processing}>
+              Confirm Release
             </Button>
           </DialogFooter>
         </DialogContent>
