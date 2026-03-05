@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
@@ -22,6 +22,7 @@ export default function AppSidebarLayout({
   const { props } = usePage();
 
   const flash = (props?.flash as { success?: string; error?: string }) ?? {};
+  const errors = (props as { errors?: Record<string, string | string[]> })?.errors ?? {};
   const setting = props?.setting as {
     nama_app: string;
     logo?: string;
@@ -37,6 +38,50 @@ export default function AppSidebarLayout({
     if (flash.success) toast.success(flash.success);
     if (flash.error) toast.error(flash.error);
   }, [flash]);
+
+  const lastErrorRef = useRef<string>('');
+  const toastErrorOnce = (message: string) => {
+    if (!message) return;
+    if (lastErrorRef.current === message) return;
+    lastErrorRef.current = message;
+    toast.error(message);
+  };
+
+  useEffect(() => {
+    const messages = Object.values(errors)
+      .flatMap((value) => (Array.isArray(value) ? value : [value]))
+      .filter(Boolean);
+    if (messages.length > 0) {
+      toastErrorOnce(messages[0]);
+    }
+  }, [errors]);
+
+  useEffect(() => {
+    const unsubscribeInvalid = router.on('invalid', (event) => {
+      const invalidErrors = (event as { detail?: { errors?: Record<string, string | string[]> } }).detail?.errors ?? {};
+      const messages = Object.values(invalidErrors)
+        .flatMap((value) => (Array.isArray(value) ? value : [value]))
+        .filter(Boolean);
+      if (messages.length > 0) {
+        toastErrorOnce(messages[0]);
+      }
+    });
+
+    const unsubscribeError = router.on('error', () => {
+      toastErrorOnce('Request failed. Please try again.');
+    });
+
+    const unsubscribeException = router.on('exception', (event) => {
+      const message = (event as { detail?: { exception?: { message?: string } } }).detail?.exception?.message;
+      toastErrorOnce(message || 'Unexpected error occurred.');
+    });
+
+    return () => {
+      unsubscribeInvalid();
+      unsubscribeError();
+      unsubscribeException();
+    };
+  }, []);
 
   const primaryColor = setting?.warna || '#0ea5e9';
   const primaryForeground = '#ffffff';

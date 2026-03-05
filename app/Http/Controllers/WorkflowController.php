@@ -284,7 +284,26 @@ class WorkflowController extends Controller
         // Get workflow state
         $workflow = $apv->workflow();
         $availableTransitions = $workflow->getAvailableTransitions($apv);
-        $history = $workflow->getHistory($apv);
+        $history = collect($workflow->getHistory($apv));
+        $performerIds = $history->pluck('performed_by')->filter()->unique()->values();
+        $performers = \App\Models\User::with(['roles:id,name', 'departments:id,name'])
+            ->whereIn('id', $performerIds)
+            ->get()
+            ->keyBy('id');
+
+        $history = $history->map(function ($item) use ($performers) {
+            $user = $performers->get($item['performed_by']);
+            $item['performer'] = $user ? [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->roles->pluck('name')->toArray(),
+                'departments' => $user->departments->pluck('name')->toArray(),
+                'created_at' => optional($user->created_at)->toISOString(),
+            ] : null;
+
+            return $item;
+        });
 
         // Check user permissions for this APV
         $canEdit = $apv->status === 'draft' && auth()->id() === $apv->requested_by;
@@ -296,7 +315,7 @@ class WorkflowController extends Controller
         return Inertia::render('Workflow/ShowApv', [
             'apv' => $apv,
             'availableTransitions' => $availableTransitions,
-            'history' => $history,
+            'history' => $history->values(),
             'canEdit' => $canEdit,
             'canSubmit' => $canSubmit,
             'canApprove' => $canApprove,

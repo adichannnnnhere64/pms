@@ -78,7 +78,14 @@ interface HistoryItem {
   performed_by: number;
   performed_at: string;
   context: any;
-  performer?: { name: string };
+  performer?: {
+    id: number;
+    name: string;
+    email: string;
+    roles: string[];
+    departments: string[];
+    created_at: string | null;
+  };
 }
 
 interface Props {
@@ -112,6 +119,8 @@ export default function ShowApv({
   const [releaseAttachments, setReleaseAttachments] = useState<File[]>([]);
   const [releaseFileError, setReleaseFileError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileUser, setProfileUser] = useState<HistoryItem['performer'] | null>(null);
   void _availableTransitions; // Reserved for future use
 
   const breadcrumbs = [
@@ -431,7 +440,28 @@ export default function ShowApv({
                     <div className="space-y-1">
                       <p className="font-medium">Created</p>
                       <p className="text-sm text-muted-foreground">
-                        by <span className="font-medium text-foreground">{apv.requester?.name || 'Unknown'}</span>
+                        by{' '}
+                        {apv.requester ? (
+                          <button
+                            type="button"
+                            className="font-medium text-foreground underline-offset-2 hover:underline"
+                            onClick={() => {
+                              setProfileUser({
+                                id: apv.requester?.id ?? 0,
+                                name: apv.requester?.name ?? 'Unknown',
+                                email: '',
+                                roles: [],
+                                departments: [],
+                                created_at: null,
+                              });
+                              setProfileOpen(true);
+                            }}
+                          >
+                            {apv.requester.name}
+                          </button>
+                        ) : (
+                          <span className="font-medium text-foreground">Unknown</span>
+                        )}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(apv.created_at), 'MMM dd, yyyy h:mm a')}
@@ -458,7 +488,21 @@ export default function ShowApv({
                           <div className="space-y-1">
                             <p className="font-medium">{config.label}</p>
                             <p className="text-sm text-muted-foreground">
-                              by <span className="font-medium text-foreground">{item.performer?.name || 'System'}</span>
+                              by{' '}
+                              {item.performer ? (
+                                <button
+                                  type="button"
+                                  className="font-medium text-foreground underline-offset-2 hover:underline"
+                                  onClick={() => {
+                                    setProfileUser(item.performer ?? null);
+                                    setProfileOpen(true);
+                                  }}
+                                >
+                                  {item.performer.name}
+                                </button>
+                              ) : (
+                                <span className="font-medium text-foreground">System</span>
+                              )}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {format(new Date(item.performed_at), 'MMM dd, yyyy h:mm a')}
@@ -518,6 +562,68 @@ export default function ShowApv({
       </div>
 
       {/* Reject Dialog */}
+      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>User Profile</DialogTitle>
+          </DialogHeader>
+          {profileUser ? (
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Name</p>
+                <p className="font-medium">{profileUser.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="font-medium">{profileUser.email}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Roles</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {profileUser.roles.length > 0 ? (
+                    profileUser.roles.map((role) => (
+                      <Badge key={role} variant="secondary" className="text-xs font-normal">
+                        {role}
+                      </Badge>
+                    ))
+                  ) : (
+                    <Badge variant="outline" className="text-xs font-normal">None</Badge>
+                  )}
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Departments</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {profileUser.departments.length > 0 ? (
+                    profileUser.departments.map((department) => (
+                      <Badge key={department} variant="outline" className="text-xs font-normal">
+                        {department}
+                      </Badge>
+                    ))
+                  ) : (
+                    <Badge variant="outline" className="text-xs font-normal">None</Badge>
+                  )}
+                </div>
+              </div>
+              {profileUser.created_at && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Joined</p>
+                  <p className="font-medium">
+                    {format(new Date(profileUser.created_at), 'MMM dd, yyyy')}
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No user data available.</p>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="secondary" onClick={() => setProfileOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
