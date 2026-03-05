@@ -5,6 +5,7 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\MediaFolderController;
+use App\Http\Controllers\VesselController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
@@ -29,6 +30,7 @@ Route::middleware(['auth', 'menu.permission'])->group(function () {
     Route::resource('permissions', PermissionController::class);
     Route::resource('departments', DepartmentController::class);
     Route::resource('users', UserController::class);
+    Route::resource('vessels', VesselController::class);
     Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     Route::get('/settingsapp', [SettingAppController::class, 'edit'])->name('setting.edit');
     Route::post('/settingsapp', [SettingAppController::class, 'update'])->name('setting.update');

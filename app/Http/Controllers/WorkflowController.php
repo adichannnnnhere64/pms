@@ -413,16 +413,17 @@ class WorkflowController extends Controller
     }
 
     /**
-     * Get vendor options (you can replace with actual vendor model)
+     * Get vendor options (now dynamic from Vessel model)
      */
     private function getVendorOptions(): array
     {
-        return [
-            ['value' => 'sta_maria', 'label' => 'MV Sta. Maria'],
-            ['value' => 'sta_editha', 'label' => 'MV Sta. Editha'],
-            ['value' => 'starlight_express', 'label' => 'Starlight Express'],
-            ['value' => 'montenegro', 'label' => 'Montenegro'],
-        ];
+        return \App\Models\Vessel::orderBy('name')
+            ->get(['name'])
+            ->map(fn($vessel) => [
+                'value' => $vessel->name,
+                'label' => $vessel->name
+            ])
+            ->toArray();
     }
 
     private function getParticularOptions(): array
