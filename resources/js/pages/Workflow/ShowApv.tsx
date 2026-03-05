@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { AttachmentPreviewDialog } from '@/components/attachment-preview-dialog';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ import {
   XCircle,
   FileText,
   Download,
+  Eye,
   Send,
   DollarSign,
 } from 'lucide-react';
@@ -121,6 +123,8 @@ export default function ShowApv({
   const [processing, setProcessing] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileUser, setProfileUser] = useState<HistoryItem['performer'] | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState<{ name: string; url: string; type?: string; size?: number } | null>(null);
   void _availableTransitions; // Reserved for future use
 
   const breadcrumbs = [
@@ -370,11 +374,28 @@ export default function ShowApv({
                             ({(file.size / 1024).toFixed(0)} KB)
                           </span>
                         </div>
-                        <Button variant="ghost" size="sm" asChild>
-                          <a href={`/storage/${file.path}`} download>
-                            <Download className="w-4 h-4" />
-                          </a>
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setPreviewFile({
+                                name: file.name,
+                                url: `/storage/${file.path}`,
+                                type: file.type,
+                                size: file.size,
+                              });
+                              setPreviewOpen(true);
+                            }}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" asChild>
+                            <a href={`/storage/${file.path}`} download>
+                              <Download className="w-4 h-4" />
+                            </a>
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -532,7 +553,7 @@ export default function ShowApv({
                             {Array.isArray(item.context?.attachments) && item.context.attachments.length > 0 && (
                               <div className="mt-2 space-y-2">
                                 <p className="text-xs font-medium text-muted-foreground">Attachments:</p>
-                                {item.context.attachments.map((file: { name: string; path: string; size: number }, index: number) => (
+                                {item.context.attachments.map((file: { name: string; path: string; size: number; type?: string }, index: number) => (
                                   <div key={`${item.id}-attachment-${index}`} className="flex items-center justify-between p-2 bg-muted rounded">
                                     <div className="flex items-center">
                                       <FileText className="w-4 h-4 mr-2" />
@@ -541,11 +562,28 @@ export default function ShowApv({
                                         ({(file.size / 1024).toFixed(0)} KB)
                                       </span>
                                     </div>
-                                    <Button variant="ghost" size="sm" asChild>
-                                      <a href={`/storage/${file.path}`} download>
-                                        <Download className="w-4 h-4" />
-                                      </a>
-                                    </Button>
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          setPreviewFile({
+                                            name: file.name,
+                                            url: `/storage/${file.path}`,
+                                            type: file.type,
+                                            size: file.size,
+                                          });
+                                          setPreviewOpen(true);
+                                        }}
+                                      >
+                                        <Eye className="w-4 h-4" />
+                                      </Button>
+                                      <Button variant="ghost" size="sm" asChild>
+                                        <a href={`/storage/${file.path}`} download>
+                                          <Download className="w-4 h-4" />
+                                        </a>
+                                      </Button>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
@@ -624,6 +662,12 @@ export default function ShowApv({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AttachmentPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        file={previewFile}
+      />
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
