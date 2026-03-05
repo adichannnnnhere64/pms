@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Adichan\WorkflowEngine\Models\WorkflowTransition;
 use App\Models\AccountabilityPaymentVoucher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -82,6 +83,7 @@ class WorkflowController extends Controller
      */
     public function create(): Response
     {
+        Gate::authorize('workflow.apv.can_submit');
 
 /* auth()->user()->roles->pluck('name') */
         return Inertia::render('Workflow/CreateApv', [
@@ -133,6 +135,7 @@ class WorkflowController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('workflow.apv.can_submit');
 
         $validated = $request->validate([
             'vendor_name' => 'required|string|max:255',

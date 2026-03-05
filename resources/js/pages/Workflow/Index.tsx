@@ -85,7 +85,7 @@ export default function WorkflowIndex({
     { title: 'Workflow', href: '/workflow' },
   ];
 
-  const isEncoder = userRoles.includes('encoder') || true;
+  const isEncoder = userRoles.includes('encoder');
   const isManager = userRoles.includes('manager');
   const isDirector = userRoles.includes('director');
   const isFinance = userRoles.includes('finance');
