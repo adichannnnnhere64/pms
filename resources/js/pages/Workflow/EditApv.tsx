@@ -122,9 +122,9 @@ export default function EditApv({ apv, vendorOptions, categoryOptions, particula
       newErrors.vendor_name = 'Vendor name is required';
     }
 
-    if (!data.department) {
-      newErrors.department = 'Department is required';
-    }
+    // if (!data.department) {
+    //   newErrors.department = 'Department is required';
+    // }
 
     if (!data.expected_date) {
       newErrors.expected_date = 'Expected date is required';
@@ -349,33 +349,6 @@ export default function EditApv({ apv, vendorOptions, categoryOptions, particula
                       <p className="text-sm text-red-500 flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
                         {getError('vendor_name')}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="department">Department *</Label>
-                    <Select
-                      value={data.department}
-                      onValueChange={(value) => handleFieldChange('department', value)}
-                    >
-                      <SelectTrigger className={getError('department') ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {allRoles
-                          .filter(role => currentUserRoles.includes(role))
-                          .map(role => (
-                            <SelectItem key={role} value={role}>
-                              {role.charAt(0).toUpperCase() + role.slice(1)}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    {getError('department') && (
-                      <p className="text-sm text-red-500 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {getError('department')}
                       </p>
                     )}
                   </div>

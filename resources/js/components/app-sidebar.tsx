@@ -8,6 +8,8 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
+import { Badge } from '@/components/ui/badge';
+
 import { usePage, Link } from '@inertiajs/react';
 import AppLogo from './app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -17,6 +19,7 @@ import type { LucideIcon } from 'lucide-react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { SharedData } from '@/types';
 
 interface MenuItem {
   id: number;
@@ -96,6 +99,17 @@ function RenderMenu({ items, level = 0 }: { items: MenuItem[]; level?: number })
 export function AppSidebar() {
   const { menus = [] } = usePage().props as { menus?: MenuItem[] };
 
+    const page = usePage<SharedData>();
+    const { auth } = page.props;
+    const departments = auth.user.departments ?? [];
+    const departmentNames = departments.map((department) => department.name);
+    const departmentLabel =
+        departmentNames.length === 0
+            ? 'No Department'
+            : departmentNames.length <= 2
+                ? departmentNames.join(', ')
+                : `${departmentNames.slice(0, 2).join(', ')} +${departmentNames.length - 2}`;
+
   const footerNavItems = [
 
   ];
@@ -120,6 +134,13 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="px-4 py-3 border-t">
+                        <Badge
+                            variant="outline"
+                            title={departmentNames.join(', ')}
+                            className="hidden max-w-[220px] truncate text-xs font-normal text-muted-foreground md:inline-flex"
+                        >
+                            Dept: {departmentLabel}
+                        </Badge>
         <NavUser  />
         <NavFooter items={footerNavItems} className="justify-center gap-4" />
       </SidebarFooter>
