@@ -48,10 +48,19 @@ class MenuSeeder extends Seeder
         ]);
 
         Menu::create([
+            'title' => 'Departments',
+            'icon' => 'Briefcase',
+            'route' => '/departments',
+            'order' => 4,
+            'permission_name' => 'departments-view',
+            'parent_id' => $access->id,
+        ]);
+
+        Menu::create([
             'title' => 'Roles',
             'icon' => 'AlertTriangle',
             'route' => '/roles',
-            'order' => 4,
+            'order' => 5,
             'permission_name' => 'roles-view',
             'parent_id' => $access->id,
         ]);

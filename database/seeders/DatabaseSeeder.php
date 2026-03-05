@@ -26,6 +26,7 @@ public function run(): void
         RolePermissionSeeder::class,
         ApvRoleSeeder::class,  // Move this BEFORE creating users
         MenuSeeder::class,
+        DepartmentSeeder::class,
     ]);
 
     // Then create users

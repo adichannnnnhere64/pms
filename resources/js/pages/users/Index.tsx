@@ -38,6 +38,10 @@ interface User {
     id: number;
     name: string;
   }[];
+  departments: {
+    id: number;
+    name: string;
+  }[];
 }
 
 interface Props {
@@ -115,6 +119,15 @@ export default function UserIndex({ users }: Props) {
                         {user.roles.map((role) => (
                           <Badge key={role.id} variant="secondary" className="text-xs font-normal">
                             {role.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    {user.departments.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {user.departments.map((department) => (
+                          <Badge key={department.id} variant="outline" className="text-xs font-normal">
+                            {department.name}
                           </Badge>
                         ))}
                       </div>

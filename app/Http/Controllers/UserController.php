@@ -13,7 +13,23 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with('roles')->latest()->paginate(10);
+        $usersQuery = User::with(['roles', 'departments'])->latest();
+
+        $currentUser = request()->user();
+        if ($currentUser && $currentUser->hasRole('encoder')) {
+            $departmentIds = $currentUser->departments()->pluck('departments.id');
+            $usersQuery->where(function ($query) use ($departmentIds, $currentUser) {
+                if ($departmentIds->isEmpty()) {
+                    $query->where('id', $currentUser->id);
+                } else {
+                    $query->whereHas('departments', function ($departmentQuery) use ($departmentIds) {
+                        $departmentQuery->whereIn('departments.id', $departmentIds);
+                    });
+                }
+            });
+        }
+
+        $users = $usersQuery->paginate(10);
 
         return Inertia::render('users/Index', [
             'users' => $users,
@@ -23,9 +39,11 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
+        $departments = \App\Models\Department::orderBy('name')->get();
 
         return Inertia::render('users/Form', [
             'roles' => $roles,
+            'departments' => $departments,
         ]);
     }
 
@@ -37,6 +55,8 @@ class UserController extends Controller
             'password' => ['required', 'string', 'min:6'],
             'roles'    => ['required', 'array', 'min:1'],
             'roles.*'  => ['required', Rule::exists('roles', 'name')],
+            'departments' => ['nullable', 'array'],
+            'departments.*' => ['required', Rule::exists('departments', 'id')],
         ]);
 
         $user = User::create([
@@ -46,6 +66,7 @@ class UserController extends Controller
         ]);
 
         $user->assignRole($validated['roles']);
+        $user->departments()->sync($validated['departments'] ?? []);
 
         return redirect()->route('users.index')->with('success', 'User berhasil dibuat.');
     }
@@ -53,11 +74,14 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
+        $departments = \App\Models\Department::orderBy('name')->get();
 
         return Inertia::render('users/Form', [
             'user'         => $user->only(['id', 'name', 'email']),
             'roles'        => $roles,
+            'departments'  => $departments,
             'currentRoles' => $user->roles->pluck('name')->toArray(), // multiple roles
+            'currentDepartments' => $user->departments->pluck('id')->toArray(),
         ]);
     }
 
@@ -69,6 +93,8 @@ class UserController extends Controller
             'password' => ['nullable', 'string', 'min:6'],
             'roles'    => ['required', 'array', 'min:1'],
             'roles.*'  => ['required', Rule::exists('roles', 'name')],
+            'departments' => ['nullable', 'array'],
+            'departments.*' => ['required', Rule::exists('departments', 'id')],
         ]);
 
         $user->update([
@@ -80,6 +106,7 @@ class UserController extends Controller
         ]);
 
         $user->syncRoles($validated['roles']);
+        $user->departments()->sync($validated['departments'] ?? []);
 
         return redirect()->route('users.index')->with('success', 'User berhasil diperbarui.');
     }

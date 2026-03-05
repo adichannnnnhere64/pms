@@ -429,7 +429,7 @@ test('transition history records the correct role holder at each step', function
 
 test('APV reference number is auto-generated on creation', function (): void {
     $apv = makeApv($this->encoder);
-    expect($apv->reference_number)->toMatch('/^APV-\d{6}-\d{4}$/');
+    expect($apv->reference_number)->toMatch('/^RAF-\d{6}-\d{4}$/');
 });
 
 test('each APV gets a unique sequential reference number', function (): void {

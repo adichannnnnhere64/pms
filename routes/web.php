@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\MediaFolderController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\PermissionController;
@@ -26,6 +27,7 @@ Route::middleware(['auth', 'menu.permission'])->group(function () {
     Route::resource('menus', MenuController::class);
     Route::post('menus/reorder', [MenuController::class, 'reorder'])->name('menus.reorder');
     Route::resource('permissions', PermissionController::class);
+    Route::resource('departments', DepartmentController::class);
     Route::resource('users', UserController::class);
     Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     Route::get('/settingsapp', [SettingAppController::class, 'edit'])->name('setting.edit');

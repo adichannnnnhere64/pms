@@ -16,6 +16,11 @@ interface Role {
   name: string;
 }
 
+interface Department {
+  id: number;
+  name: string;
+}
+
 interface User {
   id?: number;
   name: string;
@@ -26,10 +31,12 @@ interface User {
 interface Props {
   user?: User;
   roles: Role[];
+  departments: Department[];
   currentRoles?: string[];
+  currentDepartments?: number[];
 }
 
-export default function UserForm({ user, roles, currentRoles }: Props) {
+export default function UserForm({ user, roles, departments, currentRoles, currentDepartments }: Props) {
   const isEdit = !!user;
 
   const { data, setData, post, put, processing, errors } = useForm({
@@ -37,6 +44,7 @@ export default function UserForm({ user, roles, currentRoles }: Props) {
     email: user?.email || '',
     password: '',
     roles: currentRoles || [],
+    departments: currentDepartments || [],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -132,6 +140,32 @@ export default function UserForm({ user, roles, currentRoles }: Props) {
                     ))}
                   </div>
                   {errors.roles && <p className="text-sm text-red-500 mt-2">{errors.roles}</p>}
+                </div>
+
+                {/* Departments */}
+                <div>
+                  <Label className="mb-3 block">Departments</Label>
+                  <div className="space-y-3 border rounded-lg p-4">
+                    {departments.map((department) => (
+                      <div key={department.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`department-${department.id}`}
+                          checked={data.departments.includes(department.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setData('departments', [...data.departments, department.id]);
+                            } else {
+                              setData('departments', data.departments.filter((id) => id !== department.id));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`department-${department.id}`} className="text-sm font-normal cursor-pointer">
+                          {department.name}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  {errors.departments && <p className="text-sm text-red-500 mt-2">{errors.departments}</p>}
                 </div>
               </div>
 
