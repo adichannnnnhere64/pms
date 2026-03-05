@@ -25,13 +25,11 @@ class DashboardController extends Controller
 
     private function getSummaryStats(): array
     {
-        $apvs = AccountabilityPaymentVoucher::query();
-
         return [
             'totalApvs' => AccountabilityPaymentVoucher::count(),
             'pendingApproval' => AccountabilityPaymentVoucher::where('status', 'pending_approval')->count(),
             'totalApproved' => AccountabilityPaymentVoucher::whereIn('status', ['approved', 'completed'])->count(),
-            'totalAmount' => (float) AccountabilityPaymentVoucher::sum('total_amount'),
+            'totalAmount' => (float) AccountabilityPaymentVoucher::where('status', 'completed')->sum('total_amount'),
             'pendingAmount' => (float) AccountabilityPaymentVoucher::where('status', 'pending_approval')->sum('total_amount'),
         ];
     }
@@ -81,6 +79,7 @@ class DashboardController extends Controller
             DB::raw('SUM(total_amount) as total')
         )
             ->where('created_at', '>=', now()->subMonths(6)->startOfMonth())
+            ->where('status', 'completed')
             ->groupBy(DB::raw("DATE_FORMAT(created_at, '%Y-%m')"))
             ->get()
             ->keyBy('month');
@@ -102,6 +101,9 @@ class DashboardController extends Controller
             DB::raw('SUM(amount) as total'),
             DB::raw('COUNT(*) as count')
         )
+            ->whereHas('apv', function ($query) {
+                $query->where('status', 'completed');
+            })
             ->groupBy('category')
             ->orderByDesc('total')
             ->limit(8)
@@ -135,6 +137,7 @@ class DashboardController extends Controller
             DB::raw('COUNT(*) as count')
         )
             ->whereNotNull('department')
+            ->where('status', 'completed')
             ->groupBy('department')
             ->orderByDesc('total')
             ->limit(6)
