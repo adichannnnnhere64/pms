@@ -24,6 +24,16 @@ class User extends Authenticatable implements HasMedia
         'name',
         'email',
         'password',
+        'signature_path',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'signature_url',
     ];
 
     /**
@@ -57,5 +67,25 @@ class User extends Authenticatable implements HasMedia
     public function departments()
     {
         return $this->belongsToMany(Department::class);
+    }
+
+    /**
+     * Get the URL for the user's signature.
+     */
+    public function getSignatureUrlAttribute(): ?string
+    {
+        if (!$this->signature_path) {
+            return null;
+        }
+
+        return asset('storage/' . $this->signature_path);
+    }
+
+    /**
+     * Check if user has uploaded a signature.
+     */
+    public function hasSignature(): bool
+    {
+        return !empty($this->signature_path);
     }
 }

@@ -31,6 +31,7 @@ import {
   Eye,
   Send,
   DollarSign,
+  FileDown,
 } from 'lucide-react';
 import { Label } from '@radix-ui/react-label';
 
@@ -236,6 +237,12 @@ export default function ShowApv({
 
           {/* Action Buttons */}
           <div className="flex gap-2">
+            <a href={`/workflow/${apv.id}/pdf`} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline">
+                <FileDown className="w-4 h-4 mr-2" />
+                Download PDF
+              </Button>
+            </a>
             {canEdit && (
               <Link href={`/workflow/${apv.id}/edit`}>
                 <Button variant="outline">Edit</Button>

@@ -53,6 +53,7 @@ Route::middleware(['auth', 'menu.permission'])->group(function () {
     Route::put('/workflow/{apv}', [WorkflowController::class, 'update'])->name('workflow.update');
     Route::get('/workflow/{apv}', [WorkflowController::class, 'show'])->name('workflow.show');
     Route::post('/workflow/{apv}/transition', [WorkflowController::class, 'transition'])->name('workflow.transition');
+    Route::get('/workflow/{apv}/pdf', [WorkflowController::class, 'downloadPdf'])->name('workflow.pdf');
 
 });
 

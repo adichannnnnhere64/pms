@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,5 +60,44 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Update the user's signature.
+     */
+    public function updateSignature(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'signature' => ['required', 'image', 'mimes:png,jpg,jpeg', 'max:2048'],
+        ]);
+
+        $user = $request->user();
+
+        // Delete old signature if exists
+        if ($user->signature_path) {
+            Storage::disk('public')->delete($user->signature_path);
+        }
+
+        // Store new signature
+        $path = $request->file('signature')->store('signatures', 'public');
+
+        $user->update(['signature_path' => $path]);
+
+        return back()->with('status', 'signature-updated');
+    }
+
+    /**
+     * Delete the user's signature.
+     */
+    public function deleteSignature(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->signature_path) {
+            Storage::disk('public')->delete($user->signature_path);
+            $user->update(['signature_path' => null]);
+        }
+
+        return back()->with('status', 'signature-deleted');
     }
 }

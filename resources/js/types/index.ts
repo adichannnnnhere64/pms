@@ -49,6 +49,7 @@ export interface User {
     created_at: string;
     updated_at: string;
     departments?: Department[];
+    signature_url?: string | null;
     [key: string]: unknown; // This allows for additional properties...
 }
 

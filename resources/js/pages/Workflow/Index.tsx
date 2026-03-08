@@ -14,7 +14,8 @@ import {
   AlertCircle,
   Plus,
   Eye,
-  Pencil
+  Pencil,
+  FileDown
 } from 'lucide-react';
 
 interface APV {
@@ -153,13 +154,18 @@ export default function WorkflowIndex({
               <td className="py-3 px-2 text-center">
                 <div className="flex items-center justify-center gap-1">
                   <Link href={`/workflow/${apv.id}`}>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" title="View">
                       <Eye className="w-4 h-4" />
                     </Button>
                   </Link>
+                  <a href={`/workflow/${apv.id}/pdf`} target="_blank" rel="noopener noreferrer">
+                    <Button variant="ghost" size="sm" title="Download PDF">
+                      <FileDown className="w-4 h-4" />
+                    </Button>
+                  </a>
                   {allowEdit && apv.status === 'draft' && (
                     <Link href={`/workflow/${apv.id}/edit`}>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" title="Edit">
                         <Pencil className="w-4 h-4" />
                       </Button>
                     </Link>

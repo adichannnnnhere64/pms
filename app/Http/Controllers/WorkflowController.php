@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Adichan\WorkflowEngine\Models\WorkflowTransition;
 use App\Models\AccountabilityPaymentVoucher;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -441,5 +442,33 @@ class WorkflowController extends Controller
         if ($apv->status !== 'draft' || $apv->requested_by !== auth()->id()) {
             abort(403);
         }
+    }
+
+    /**
+     * Download RAF as PDF
+     */
+    public function downloadPdf(AccountabilityPaymentVoucher $apv)
+    {
+        $apv->load(['requester', 'approver', 'releasedBy', 'particulars']);
+
+        $config = config('raf');
+
+        $pdf = Pdf::loadView('pdf.raf', [
+            'apv' => $apv,
+            'config' => $config,
+        ]);
+
+        $pdf->setPaper(
+            $config['pdf']['paper_size'],
+            $config['pdf']['orientation']
+        );
+
+        $filename = sprintf(
+            '%s-%s.pdf',
+            $config['pdf']['filename_prefix'],
+            $apv->reference_number
+        );
+
+        return $pdf->download($filename);
     }
 }
