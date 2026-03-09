@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Adichan\WorkflowEngine\Models\WorkflowSignoff;
 use Adichan\WorkflowEngine\Models\WorkflowTransition;
 use App\Models\AccountabilityPaymentVoucher;
+use App\Models\DesignatedApprover;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -17,23 +19,25 @@ class WorkflowController extends Controller
      */
     public function index(Request $request): Response
     {
-        $user = $request->user();
-
         $user = auth()->user();
+        $userId = auth()->id();
 
+        // Check if user is a designated approver or releaser
+        $isDesignatedApprover = DesignatedApprover::isDesignatedApprover($userId);
+        $isDesignatedReleaser = DesignatedApprover::isDesignatedReleaser($userId);
 
-        // Get APVs pending user action based on role
+        // Get APVs pending user action based on role OR designated status
         $pendingApprovals = AccountabilityPaymentVoucher::query()
-            ->when($user->hasRole('encoder'), function ($query) {
-                $query->where('requested_by', auth()->id())
+            ->when($user->hasRole('encoder') && !$isDesignatedApprover && !$isDesignatedReleaser, function ($query) use ($userId) {
+                $query->where('requested_by', $userId)
                     ->whereIn('status', ['draft', 'rejected']);
             })
-            ->when($user->hasRole('manager'), function ($query) {
-                // Manager sees items pending approval
+            ->when($user->hasRole('manager') || $isDesignatedApprover, function ($query) {
+                // Manager or designated approver sees items pending approval
                 $query->where('status', 'pending_approval');
             })
-            ->when($user->hasAnyRole(['director', 'finance']), function ($query) {
-                // Director/Finance sees approved items pending release
+            ->when($user->hasAnyRole(['director', 'finance']) || $isDesignatedReleaser, function ($query) {
+                // Director/Finance or designated releaser sees approved items pending release
                 $query->where('status', 'approved');
             })
             ->with(['requester', 'particulars'])
@@ -69,12 +73,21 @@ class WorkflowController extends Controller
             ->orderBy('updated_at', 'desc')
             ->paginate(15, ['*'], 'actionHistoryPage');
 
+        // Add designated approver/releaser to roles for UI display
+        $effectiveRoles = $user->getRoleNames()->toArray();
+        if ($isDesignatedApprover && !in_array('manager', $effectiveRoles)) {
+            $effectiveRoles[] = 'manager'; // Treat as manager in UI
+        }
+        if ($isDesignatedReleaser && !in_array('director', $effectiveRoles) && !in_array('finance', $effectiveRoles)) {
+            $effectiveRoles[] = 'finance'; // Treat as finance in UI
+        }
+
         return Inertia::render('Workflow/Index', [
             'pendingApprovals' => $pendingApprovals,
             'myRequests' => $myRequests,
             'completed' => $completed,
             'actionHistory' => $actionHistory,
-            'userRoles' => $user->getRoleNames(),
+            'userRoles' => $effectiveRoles,
             'workflowStats' => $this->getWorkflowStats($user),
         ]);
     }
@@ -306,12 +319,30 @@ class WorkflowController extends Controller
             return $item;
         });
 
-        // Check user permissions for this APV
-        $canEdit = $apv->status === 'draft' && auth()->id() === $apv->requested_by;
-        $canSubmit  = auth()->user()->can('apv.submit') && $apv->status === 'draft';
-        $canApprove = auth()->user()->can('apv.approve') && $apv->status === 'pending_approval';
-        $canReject  = auth()->user()->can('apv.reject') && in_array($apv->status, ['pending_approval', 'approved']);
-        $canRelease = auth()->user()->can('apv.release') && $apv->status === 'approved';
+        // Check user permissions for this APV (including designated approvers)
+        $user = auth()->user();
+        $userId = auth()->id();
+        $isDesignatedApprover = DesignatedApprover::isDesignatedApprover($userId);
+        $isDesignatedReleaser = DesignatedApprover::isDesignatedReleaser($userId);
+
+        $canEdit = $apv->status === 'draft' && $userId === $apv->requested_by;
+        $canSubmit = $user->can('apv.submit') && $apv->status === 'draft';
+
+        // Get signoff information first (needed for canApprove check)
+        $signoffData = $this->getSignoffData($apv, $userId);
+
+        // Allow approvers to sign if:
+        // 1. Status is pending_approval, OR
+        // 2. Status is approved AND user is a required approver who hasn't signed yet
+        $canApproveNormally = ($user->can('apv.approve') || $isDesignatedApprover) && $apv->status === 'pending_approval';
+        $canSignAsRequiredApprover = $isDesignatedApprover
+            && $apv->status === 'approved'
+            && !$signoffData['user_has_signed']
+            && $this->isRequiredApprover($userId);
+        $canApprove = $canApproveNormally || $canSignAsRequiredApprover;
+
+        $canReject = ($user->can('apv.reject') || $isDesignatedApprover || $isDesignatedReleaser) && in_array($apv->status, ['pending_approval', 'approved']);
+        $canRelease = ($user->can('apv.release') || $isDesignatedReleaser) && $apv->status === 'approved';
 
         return Inertia::render('Workflow/ShowApv', [
             'apv' => $apv,
@@ -322,6 +353,7 @@ class WorkflowController extends Controller
             'canApprove' => $canApprove,
             'canReject' => $canReject,
             'canRelease' => $canRelease,
+            'signoffs' => $signoffData,
             'workflowStates' => [
                 'draft' => ['label' => 'Pending', 'color' => 'gray'],
                 'pending_approval' => ['label' => 'Pending Approval', 'color' => 'yellow'],
@@ -348,6 +380,11 @@ class WorkflowController extends Controller
 
 
         try {
+            // Check required signoffs before release
+            if ($validated['transition'] === 'release') {
+                $this->validateRequiredApprovers($apv);
+            }
+
             $releaseAttachments = [];
             if ($validated['transition'] === 'release' && $request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
@@ -371,12 +408,56 @@ class WorkflowController extends Controller
                 default => [],
             };
 
+            // Record signoff when approving
+            if ($validated['transition'] === 'approve') {
+                $workflow = $apv->workflow();
+                $workflow->recordSignoff(
+                    $apv,
+                    auth()->id(),
+                    'approver',
+                    $validated['comment'] ?? null
+                );
+
+                // If already approved, just record signoff without transitioning
+                if ($apv->status === 'approved') {
+                    return back()->with('success', 'Your approval has been recorded');
+                }
+            }
 
             $transition = $apv->transition($validated['transition'], $context);
 
             return back()->with('success', "RAF {$validated['transition']} successful");
         } catch (\DomainException $e) {
             return back()->withErrors(['transition' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Validate that all required approvers have signed off.
+     */
+    private function validateRequiredApprovers(AccountabilityPaymentVoucher $apv): void
+    {
+        $requiredApprovers = DesignatedApprover::getRequiredApprovers();
+
+        if ($requiredApprovers->isEmpty()) {
+            return; // No required approvers configured
+        }
+
+        $requiredUserIds = $requiredApprovers->pluck('user_id')->toArray();
+        $workflow = $apv->workflow();
+
+        $missingSignoffs = $workflow->getMissingSignoffs($apv, 'approver', $requiredUserIds);
+
+        if (!empty($missingSignoffs)) {
+            // Get names of missing approvers
+            $missingApprovers = $requiredApprovers
+                ->whereIn('user_id', $missingSignoffs)
+                ->map(fn ($a) => $a->user->name . ($a->title ? " ({$a->title})" : ''))
+                ->implode(', ');
+
+            throw new \DomainException(
+                "Cannot release. Missing required approvals from: {$missingApprovers}"
+            );
         }
     }
 
@@ -391,11 +472,15 @@ class WorkflowController extends Controller
             ->distinct('model_id')
             ->count('model_id');
 
-        // Count pending items for current user based on role
+        // Check designated approver/releaser status
+        $isDesignatedApprover = DesignatedApprover::isDesignatedApprover($user->id);
+        $isDesignatedReleaser = DesignatedApprover::isDesignatedReleaser($user->id);
+
+        // Count pending items for current user based on role OR designated status
         $pendingMyAction = 0;
-        if ($user->hasRole('manager')) {
+        if ($user->hasRole('manager') || $isDesignatedApprover) {
             $pendingMyAction = AccountabilityPaymentVoucher::where('status', 'pending_approval')->count();
-        } elseif ($user->hasAnyRole(['director', 'finance'])) {
+        } elseif ($user->hasAnyRole(['director', 'finance']) || $isDesignatedReleaser) {
             $pendingMyAction = AccountabilityPaymentVoucher::where('status', 'approved')->count();
         }
 
@@ -445,6 +530,67 @@ class WorkflowController extends Controller
     }
 
     /**
+     * Get signoff data for display.
+     */
+    private function getSignoffData(AccountabilityPaymentVoucher $apv, ?int $userId = null): array
+    {
+        $workflow = $apv->workflow();
+
+        // Get all designated approvers with their signoff status
+        $designatedApprovers = DesignatedApprover::getApprovers();
+        $approverSignoffUserIds = $workflow->getSignoffUserIds($apv, 'approver');
+
+        $approvers = $designatedApprovers->map(function ($approver) use ($approverSignoffUserIds, $workflow, $apv) {
+            $hasSigned = in_array($approver->user_id, $approverSignoffUserIds);
+            $signoff = null;
+
+            if ($hasSigned) {
+                $signoff = WorkflowSignoff::where('model_type', get_class($apv))
+                    ->where('model_id', $apv->id)
+                    ->where('user_id', $approver->user_id)
+                    ->where('signoff_type', 'approver')
+                    ->first();
+            }
+
+            return [
+                'id' => $approver->id,
+                'user_id' => $approver->user_id,
+                'user_name' => $approver->user->name,
+                'title' => $approver->title,
+                'is_required' => $approver->is_required,
+                'has_signed' => $hasSigned,
+                'signed_at' => $signoff?->signed_at?->toISOString(),
+                'comments' => $signoff?->comments,
+            ];
+        });
+
+        // Get required approvers that haven't signed
+        $requiredApprovers = DesignatedApprover::getRequiredApprovers();
+        $requiredUserIds = $requiredApprovers->pluck('user_id')->toArray();
+        $missingRequired = $workflow->getMissingSignoffs($apv, 'approver', $requiredUserIds);
+
+        // Check if current user has already signed
+        $userHasSigned = $userId ? in_array($userId, $approverSignoffUserIds) : false;
+
+        return [
+            'approvers' => $approvers->values(),
+            'required_complete' => empty($missingRequired),
+            'missing_required_count' => count($missingRequired),
+            'total_signoffs' => count($approverSignoffUserIds),
+            'user_has_signed' => $userHasSigned,
+        ];
+    }
+
+    /**
+     * Check if user is a required approver.
+     */
+    private function isRequiredApprover(int $userId): bool
+    {
+        return DesignatedApprover::getRequiredApprovers()
+            ->contains('user_id', $userId);
+    }
+
+    /**
      * Download RAF as PDF
      */
     public function downloadPdf(AccountabilityPaymentVoucher $apv)
@@ -453,9 +599,15 @@ class WorkflowController extends Controller
 
         $config = config('raf');
 
+        // Get designated approvers and releasers for signature section
+        $designatedApprovers = DesignatedApprover::getApprovers();
+        $designatedReleasers = DesignatedApprover::getReleasers();
+
         $pdf = Pdf::loadView('pdf.raf', [
             'apv' => $apv,
             'config' => $config,
+            'designatedApprovers' => $designatedApprovers,
+            'designatedReleasers' => $designatedReleasers,
         ]);
 
         $pdf->setPaper(

@@ -9,6 +9,7 @@ use Database\Factories\AccountPayableVoucherParticularFactory;
 
 
 use App\Models\User;
+use App\Models\Vessel;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
@@ -22,12 +23,16 @@ public function run(): void
 
 
     // First seed ALL roles and permissions
-    $this->call([
-        RolePermissionSeeder::class,
-        ApvRoleSeeder::class,  // Move this BEFORE creating users
-        MenuSeeder::class,
-        DepartmentSeeder::class,
-    ]);
+        $this->call([
+            RolePermissionSeeder::class,
+            ApvRoleSeeder::class,  // Move this BEFORE creating users
+            MenuSeeder::class,
+            DepartmentSeeder::class,
+            VesselPermissionSeeder::class,
+            VesselMenuSeeder::class,
+            DesignatedApproverPermissionSeeder::class,
+            DesignatedApproverMenuSeeder::class,
+        ]);
 
     // Then create users
     $user = User::factory()->create([

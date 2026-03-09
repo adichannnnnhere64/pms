@@ -13,20 +13,20 @@
 
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 11px;
-            line-height: 1.4;
+            font-size: 9px;
+            line-height: 1.2;
             color: #333;
         }
 
         .container {
-            padding: 20px;
+            padding: 10px 15px;
         }
 
         /* Header */
         .header {
             border-bottom: 2px solid #333;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .header-content {
@@ -38,24 +38,24 @@
         }
 
         .company-name {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             color: #1a1a1a;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .company-details {
-            font-size: 10px;
+            font-size: 8px;
             color: #666;
         }
 
         .document-title {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 8px;
         }
 
         .document-title h1 {
-            font-size: 16px;
+            font-size: 12px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -65,8 +65,8 @@
         .reference-box {
             background-color: #f5f5f5;
             border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 20px;
+            padding: 6px;
+            margin-bottom: 10px;
         }
 
         .reference-table {
@@ -74,26 +74,26 @@
         }
 
         .reference-table td {
-            padding: 3px 0;
+            padding: 2px 0;
         }
 
         .reference-table .label {
             font-weight: bold;
-            width: 150px;
+            width: 120px;
             color: #555;
         }
 
         .reference-number {
-            font-size: 14px;
+            font-size: 11px;
             font-weight: bold;
             color: #1a1a1a;
         }
 
         .status-badge {
             display: inline-block;
-            padding: 3px 10px;
-            border-radius: 3px;
-            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 8px;
             font-weight: bold;
             text-transform: uppercase;
             color: #fff;
@@ -101,9 +101,9 @@
 
         .priority-badge {
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 3px;
-            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 8px;
             font-weight: bold;
             text-transform: uppercase;
         }
@@ -120,17 +120,17 @@
 
         /* Section */
         .section {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .section-title {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: bold;
             text-transform: uppercase;
             color: #333;
             border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
+            padding-bottom: 3px;
+            margin-bottom: 5px;
         }
 
         /* Info Grid */
@@ -139,14 +139,14 @@
         }
 
         .info-grid td {
-            padding: 5px 10px 5px 0;
+            padding: 2px 8px 2px 0;
             vertical-align: top;
         }
 
         .info-grid .label {
             font-weight: bold;
             color: #555;
-            width: 120px;
+            width: 90px;
         }
 
         .info-grid .value {
@@ -157,22 +157,22 @@
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 5px;
         }
 
         .items-table th {
             background-color: #f5f5f5;
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 4px;
             text-align: left;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 8px;
             text-transform: uppercase;
         }
 
         .items-table td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 4px;
             vertical-align: top;
         }
 
@@ -191,7 +191,7 @@
         }
 
         .total-amount {
-            font-size: 14px;
+            font-size: 10px;
             font-weight: bold;
         }
 
@@ -199,13 +199,13 @@
         .notes-box {
             background-color: #fffdf0;
             border: 1px solid #e5e3d0;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 5px;
+            margin-top: 5px;
         }
 
         /* Approval Section */
         .approval-section {
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .approval-grid {
@@ -213,56 +213,57 @@
         }
 
         .approval-grid td {
-            padding: 10px;
+            padding: 3px;
             vertical-align: top;
             width: 33.33%;
         }
 
         .approval-box {
             border: 1px solid #ddd;
-            padding: 15px;
+            padding: 6px;
             text-align: center;
-            min-height: 100px;
+            min-height: 60px;
         }
 
         .approval-box .title {
             font-weight: bold;
-            font-size: 10px;
+            font-size: 8px;
             text-transform: uppercase;
             color: #555;
-            margin-bottom: 10px;
+            margin-bottom: 4px;
         }
 
         .approval-box .signature-image {
-            max-height: 50px;
-            max-width: 150px;
-            margin: 10px auto;
+            max-height: 30px;
+            max-width: 100px;
+            margin: 4px auto;
         }
 
         .approval-box .name {
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 4px;
             border-top: 1px solid #333;
-            padding-top: 5px;
+            padding-top: 3px;
+            font-size: 8px;
         }
 
         .approval-box .date {
-            font-size: 9px;
+            font-size: 7px;
             color: #666;
-            margin-top: 5px;
+            margin-top: 2px;
         }
 
         /* Footer */
         .footer {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
+            bottom: 10px;
+            left: 15px;
+            right: 15px;
             text-align: center;
-            font-size: 9px;
+            font-size: 7px;
             color: #999;
             border-top: 1px solid #eee;
-            padding-top: 10px;
+            padding-top: 5px;
         }
 
         .page-number {
@@ -273,20 +274,20 @@
         .history-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: 8px;
         }
 
         .history-table th {
             background-color: #f5f5f5;
             border: 1px solid #ddd;
-            padding: 6px;
+            padding: 4px;
             text-align: left;
             font-weight: bold;
         }
 
         .history-table td {
             border: 1px solid #ddd;
-            padding: 6px;
+            padding: 4px;
         }
     </style>
 </head>
@@ -398,13 +399,14 @@
         </div>
 
         <!-- Approval Signatures -->
-        @if($config['signatures']['prepared_by']['show'] || $config['signatures']['approved_by']['show'] || $config['signatures']['released_by']['show'])
         <div class="section approval-section">
             <div class="section-title">Signatures</div>
+
+            <!-- Row 1: Prepared By -->
+            @if($config['signatures']['prepared_by']['show'])
             <table class="approval-grid">
                 <tr>
-                    @if($config['signatures']['prepared_by']['show'])
-                    <td>
+                    <td style="width: 33%;">
                         <div class="approval-box">
                             <div class="title">{{ $config['signatures']['prepared_by']['label'] }}</div>
                             @if($apv->requester && $apv->requester->signature_path)
@@ -414,10 +416,43 @@
                             <div class="date">{{ \Carbon\Carbon::parse($apv->created_at)->format($config['date_format']) }}</div>
                         </div>
                     </td>
-                    @endif
+                    <td style="width: 67%;"></td>
+                </tr>
+            </table>
+            @endif
 
-                    @if($config['signatures']['approved_by']['show'])
-                    <td>
+            <!-- Row 2: Designated Approvers -->
+            @if(isset($designatedApprovers) && $designatedApprovers->count() > 0)
+            <table class="approval-grid" style="margin-top: 5px;">
+                <tr>
+                    @foreach($designatedApprovers as $designatedApprover)
+                    <td style="width: {{ 100 / $designatedApprovers->count() }}%;">
+                        <div class="approval-box">
+                            <div class="title">{{ $designatedApprover->title ?? 'Approved By' }}</div>
+                            @php
+                                $isActualApprover = $apv->approver && $apv->approved_by == $designatedApprover->user_id;
+                            @endphp
+                            @if($designatedApprover->user->signature_path)
+                                @if($isActualApprover)
+                                    <img src="{{ public_path('storage/' . $designatedApprover->user->signature_path) }}" class="signature-image" alt="Signature">
+                                @endif
+                            @endif
+                            <div class="name">{{ $designatedApprover->user->name }}</div>
+                            @if($isActualApprover && $apv->approved_at)
+                                <div class="date">{{ \Carbon\Carbon::parse($apv->approved_at)->format($config['date_format']) }}</div>
+                            @else
+                                <div class="date">&nbsp;</div>
+                            @endif
+                        </div>
+                    </td>
+                    @endforeach
+                </tr>
+            </table>
+            @elseif($config['signatures']['approved_by']['show'])
+            <!-- Fallback to original approved_by if no designated approvers -->
+            <table class="approval-grid" style="margin-top: 5px;">
+                <tr>
+                    <td style="width: 33%;">
                         <div class="approval-box">
                             <div class="title">{{ $config['signatures']['approved_by']['label'] }}</div>
                             @if($apv->approver)
@@ -432,10 +467,43 @@
                             @endif
                         </div>
                     </td>
-                    @endif
+                    <td style="width: 67%;"></td>
+                </tr>
+            </table>
+            @endif
 
-                    @if($config['signatures']['released_by']['show'])
-                    <td>
+            <!-- Row 3: Designated Releasers -->
+            @if(isset($designatedReleasers) && $designatedReleasers->count() > 0)
+            <table class="approval-grid" style="margin-top: 5px;">
+                <tr>
+                    @foreach($designatedReleasers as $designatedReleaser)
+                    <td style="width: {{ 100 / $designatedReleasers->count() }}%;">
+                        <div class="approval-box">
+                            <div class="title">{{ $designatedReleaser->title ?? 'Released By' }}</div>
+                            @php
+                                $isActualReleaser = $apv->releasedBy && $apv->released_by == $designatedReleaser->user_id;
+                            @endphp
+                            @if($designatedReleaser->user->signature_path)
+                                @if($isActualReleaser)
+                                    <img src="{{ public_path('storage/' . $designatedReleaser->user->signature_path) }}" class="signature-image" alt="Signature">
+                                @endif
+                            @endif
+                            <div class="name">{{ $designatedReleaser->user->name }}</div>
+                            @if($isActualReleaser && $apv->released_at)
+                                <div class="date">{{ \Carbon\Carbon::parse($apv->released_at)->format($config['date_format']) }}</div>
+                            @else
+                                <div class="date">&nbsp;</div>
+                            @endif
+                        </div>
+                    </td>
+                    @endforeach
+                </tr>
+            </table>
+            @elseif($config['signatures']['released_by']['show'])
+            <!-- Fallback to original released_by if no designated releasers -->
+            <table class="approval-grid" style="margin-top: 5px;">
+                <tr>
+                    <td style="width: 33%;">
                         <div class="approval-box">
                             <div class="title">{{ $config['signatures']['released_by']['label'] }}</div>
                             @if($apv->releasedBy)
@@ -450,11 +518,11 @@
                             @endif
                         </div>
                     </td>
-                    @endif
+                    <td style="width: 67%;"></td>
                 </tr>
             </table>
+            @endif
         </div>
-        @endif
 
         <!-- Rejection Reason -->
         @if($apv->status === 'rejected' && $apv->rejected_reason)

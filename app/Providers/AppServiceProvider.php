@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\DesignatedApprover;
 use App\Models\Menu;
 use App\Models\SettingApp;
 use App\Models\User;
@@ -37,21 +38,38 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('encoder');
         });
 
-        // -- Step 2: Manager validates the request ------------------------------------
+        // -- Step 2: Manager OR Designated Approver validates the request -------------
         Gate::define('workflow.apv.can_approve', function ($user): bool {
-            return $user->hasRole('manager');
+            // Check if user is a designated approver OR has manager role
+            return DesignatedApprover::isDesignatedApprover($user->id)
+                || $user->hasRole('manager');
         });
 
-        // -- Step 3: Director OR Finance releases the payment -------------------------
+        // -- Step 3: Director/Finance OR Designated Releaser releases payment ---------
         Gate::define('workflow.apv.can_release', function ($user): bool {
-            return $user->hasAnyRole(['director', 'finance']);
+            // Check if user is a designated releaser OR has director/finance role
+            return DesignatedApprover::isDesignatedReleaser($user->id)
+                || $user->hasAnyRole(['director', 'finance']);
         });
 
-
+        // Generic workflow gates - also check designated approvers
         Gate::define('workflow.can_submit', fn ($user, $model = null) => $user->hasPermissionTo('apv.submit'));
-        Gate::define('workflow.can_approve', fn ($user, $model = null) => $user->hasPermissionTo('apv.approve'));
-        Gate::define('workflow.can_reject', fn ($user, $model = null) => $user->hasPermissionTo('apv.reject'));
-        Gate::define('workflow.can_process_payment', fn ($user, $model = null) => $user->hasPermissionTo('apv.release'));
+
+        Gate::define('workflow.can_approve', function ($user, $model = null) {
+            return DesignatedApprover::isDesignatedApprover($user->id)
+                || $user->hasPermissionTo('apv.approve');
+        });
+
+        Gate::define('workflow.can_reject', function ($user, $model = null) {
+            return DesignatedApprover::isDesignatedApprover($user->id)
+                || DesignatedApprover::isDesignatedReleaser($user->id)
+                || $user->hasPermissionTo('apv.reject');
+        });
+
+        Gate::define('workflow.can_process_payment', function ($user, $model = null) {
+            return DesignatedApprover::isDesignatedReleaser($user->id)
+                || $user->hasPermissionTo('apv.release');
+        });
 
     }
 }

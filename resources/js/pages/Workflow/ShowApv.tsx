@@ -32,6 +32,7 @@ import {
   Send,
   DollarSign,
   FileDown,
+  Clock,
 } from 'lucide-react';
 import { Label } from '@radix-ui/react-label';
 
@@ -91,6 +92,25 @@ interface HistoryItem {
   };
 }
 
+interface SignoffApprover {
+  id: number;
+  user_id: number;
+  user_name: string;
+  title: string | null;
+  is_required: boolean;
+  has_signed: boolean;
+  signed_at: string | null;
+  comments: string | null;
+}
+
+interface SignoffData {
+  approvers: SignoffApprover[];
+  required_complete: boolean;
+  missing_required_count: number;
+  total_signoffs: number;
+  user_has_signed: boolean;
+}
+
 interface Props {
   apv: APV;
   availableTransitions: Transition;
@@ -100,6 +120,7 @@ interface Props {
   canApprove: boolean;
   canReject: boolean;
   canRelease: boolean;
+  signoffs: SignoffData;
   workflowStates: Record<string, { label: string; color: string }>;
 }
 
@@ -112,6 +133,7 @@ export default function ShowApv({
   canApprove,
   canReject,
   canRelease,
+  signoffs,
   workflowStates,
 }: Props) {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -254,10 +276,10 @@ export default function ShowApv({
                 Submit for Approval
               </Button>
             )}
-            {canApprove && apv.status === 'pending_approval' && (
+            {canApprove && (apv.status === 'pending_approval' || apv.status === 'approved') && (
               <Button onClick={() => handleTransition('approve')} disabled={processing}>
                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                Approve
+                {apv.status === 'approved' ? 'Add Your Approval' : 'Approve'}
               </Button>
             )}
             {canReject && (
@@ -273,7 +295,11 @@ export default function ShowApv({
               </Button>
             )}
             {canRelease && apv.status === 'approved' && (
-              <Button onClick={() => handleTransition('release')} disabled={processing}>
+              <Button
+                onClick={() => handleTransition('release')}
+                disabled={processing || !signoffs.required_complete}
+                title={!signoffs.required_complete ? `Waiting for ${signoffs.missing_required_count} more required approval(s)` : undefined}
+              >
                 <DollarSign className="w-4 h-4 mr-2" />
                 Release Payment
               </Button>
@@ -454,6 +480,80 @@ export default function ShowApv({
                 )}
               </CardContent>
             </Card>
+
+            {/* Signoff Status */}
+            {signoffs.approvers.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Required Approvals</span>
+                    {signoffs.required_complete ? (
+                      <Badge className="bg-green-100 text-green-800">Complete</Badge>
+                    ) : (
+                      <Badge className="bg-yellow-100 text-yellow-800">
+                        {signoffs.missing_required_count} Pending
+                      </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {signoffs.approvers
+                    .filter((approver) => approver.is_required)
+                    .map((approver) => (
+                      <div key={approver.id} className="flex items-start justify-between p-2 rounded-lg bg-muted/50">
+                        <div className="flex items-start gap-2">
+                          {approver.has_signed ? (
+                            <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                          ) : (
+                            <Clock className="w-5 h-5 text-yellow-600 mt-0.5" />
+                          )}
+                          <div>
+                            <p className="font-medium text-sm">{approver.user_name}</p>
+                            {approver.title && (
+                              <p className="text-xs text-muted-foreground">{approver.title}</p>
+                            )}
+                            {approver.has_signed && approver.signed_at && (
+                              <p className="text-xs text-green-600">
+                                Signed {format(new Date(approver.signed_at), 'MMM dd, h:mm a')}
+                              </p>
+                            )}
+                            {approver.has_signed && approver.comments && (
+                              <p className="text-xs text-muted-foreground mt-1 italic">
+                                "{approver.comments}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <Badge variant={approver.has_signed ? 'default' : 'outline'} className="text-xs">
+                          {approver.has_signed ? 'Signed' : 'Pending'}
+                        </Badge>
+                      </div>
+                    ))}
+                  {signoffs.approvers.filter((a) => !a.is_required).length > 0 && (
+                    <div className="pt-2 border-t">
+                      <p className="text-xs text-muted-foreground mb-2">Optional Approvers</p>
+                      {signoffs.approvers
+                        .filter((approver) => !approver.is_required)
+                        .map((approver) => (
+                          <div key={approver.id} className="flex items-center justify-between py-1">
+                            <div className="flex items-center gap-2">
+                              {approver.has_signed ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <Clock className="w-4 h-4 text-gray-400" />
+                              )}
+                              <span className="text-sm">{approver.user_name}</span>
+                              {approver.title && (
+                                <span className="text-xs text-muted-foreground">({approver.title})</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Workflow History */}
             <Card>

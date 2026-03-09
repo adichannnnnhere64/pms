@@ -4,6 +4,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DesignatedApproverController;
 use App\Http\Controllers\MediaFolderController;
 use App\Http\Controllers\VesselController;
 use App\Http\Controllers\MenuController;
@@ -34,6 +35,13 @@ Route::middleware(['auth', 'menu.permission'])->group(function () {
     Route::put('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     Route::get('/settingsapp', [SettingAppController::class, 'edit'])->name('setting.edit');
     Route::post('/settingsapp', [SettingAppController::class, 'update'])->name('setting.update');
+
+    // Designated Approvers Management
+    Route::get('/designated-approvers', [DesignatedApproverController::class, 'index'])->name('designated-approvers.index');
+    Route::post('/designated-approvers', [DesignatedApproverController::class, 'store'])->name('designated-approvers.store');
+    Route::put('/designated-approvers/{designatedApprover}', [DesignatedApproverController::class, 'update'])->name('designated-approvers.update');
+    Route::delete('/designated-approvers/{designatedApprover}', [DesignatedApproverController::class, 'destroy'])->name('designated-approvers.destroy');
+    Route::post('/designated-approvers/reorder', [DesignatedApproverController::class, 'reorder'])->name('designated-approvers.reorder');
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     Route::get('/backup', [BackupController::class, 'index'])->name('backup.index');
     Route::post('/backup/run', [BackupController::class, 'run'])->name('backup.run');
